@@ -54,7 +54,8 @@ typedef struct {
 } threadParams_t;
 
 // variables
-sem_t task_sems[NUM_THREADS-1];
+sem_t task_sems[NUM_THREADS];
+uint8_t abort_service[NUM_THREADS] = {0};
 int task_priorities[NUM_THREADS]; // this needs to be initialized
 
 // function prototypes
@@ -134,14 +135,17 @@ void main(void)
         else        {printf("\tWCET");}
         pthread_join(threads[0],NULL);
         printf("WCET joined\n");
+        print_WCETs();
     #endif
 
-    for(uint8_t i=1;i<NUM_THREADS;i++)
+    // joining threads and clearing semaphors
+    for(uint8_t i=1;i<NUM_THREADS;i++){
+        abort_service[i] = TRUE:
+        sem_post(&task_sems[i]);
         pthread_join(threads[i], NULL);
-    sem_post(&semS1);
-    mbedtls_chacha20_free(&ctx);
-    print_WCETs();
-    printf("\nTEST COMPLETE\n");
+        sem_destroy(&task_sems[i]);
+    }
+    printf("\nEnd Program\n");
     return;
 }
 
@@ -150,55 +154,10 @@ void *Service_1(void *threadp)
 {
     printf("Service 1 started");
 
-    while(!abortS1)
+    while(!abort_service[1])
     {
-        sem_wait(&semS1);
-        for(uint16_t i = 0; i < 256; i++){
-            if(sendServo[i]==0){
-                if(receiveServo[i]==0){
-                    sendServo[i]=0;
-                }
-                else if(receiveServo[i]==1){
-                    sendServo[i]=1;
-                }
-                else{
-                    sendServo[i]=0;
-                }
-            }
-            else if(sendServo[i]==1){
-                if(receiveServo[i]==0){
-                    sendServo[i]=0;
-                }
-                else if(receiveServo[i]==1){
-                    sendServo[i]=1;
-                }
-                else{
-                    sendServo[i]=0;
-                }
-            }
-            else if(sendServo[i]==2){
-                if(receiveServo[i]==2){
-                    sendServo[i]=0;
-                }
-                else if(receiveServo[i]==3){
-                    sendServo[i]=1;
-                }
-                else{
-                    sendServo[i]=0;
-                }
-            }
-            else if(sendServo[i]==3){
-                if(receiveServo[i]==2){
-                    sendServo[i]=0;
-                }
-                else if(receiveServo[i]==3){
-                    sendServo[i]=1;
-                }
-                else{
-                    sendServo[i]=0;
-                }
-            }
-        }
+        sem_wait(&task_sems[1]);
+        // do something
     }
 
     pthread_exit((void *)0);
@@ -230,8 +189,6 @@ void *Service_WCET(void *threadp){
         clock_gettime(CLOCK_MONOTONIC,&endTime);
         getElapsedTime(1,startTime,endTime);
     }
-    abortS1=TRUE;
-    sem_post(&semS1);
     pthread_exit((void *)0);
 }
 

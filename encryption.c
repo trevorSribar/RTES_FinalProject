@@ -28,6 +28,11 @@ uint8_t encryption_init(){
     return 0;
 }
 
+// cleans the memory that was used for encryption
+void encryption_destroy(){
+    mbedtls_chacha20_free(&ctx);
+}
+
 // generates a new nonce
 void encryption_updateNonce(){
     for(uint8_t i = 0; i < ENCRYPTION_NONCE_LENGTH; i++){

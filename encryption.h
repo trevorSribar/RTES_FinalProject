@@ -17,6 +17,9 @@
 // initializes encryption variables
 uint8_t encryption_init();
 
+// cleans the memory that was used for encryption
+void encryption_destroy();
+
 // generates a new nonce, a 12 byte string
 void encryption_updateNonce();
 

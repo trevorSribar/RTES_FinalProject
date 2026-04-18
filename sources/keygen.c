@@ -39,13 +39,13 @@ void keygen_receiver(uint8_t *dataSensed, uint8_t *measuredServoData, uint8_t *r
             uint8_t sensedValue = dataSensed[i*8+j];
             uint8_t measuredValue = measuredServoData[i*8+j];
             uint8_t receivedBasis = reveivedServoData[i*8+j];
-            // if it was sent in basis 1, we were looking at zero in that base, and we saw no value
+            // if it was sent in basis 1, we were looking at zero in that base, and we saw no value, then 1 must have been sent
             if(receivedBasis==KEYGEN_BASIS1 && measuredValue==KEYGEN_ZERO_B1 && sensedValue==0)     {key[i]|=1<<j;}
-            // if it was sent in basis 1, we were looking at one in that base, and saw a value
+            // if it was sent in basis 1, we were looking at one in that base, and saw a value, then 1 was sent
             else if(receivedBasis==KEYGEN_BASIS1 && measuredValue==KEYGEN_ONE_B1 && sensedValue!=0) {key[i]|=1<<j;}
-            // if it was sent in basis 2, we were looking at zero in that base, and we saw no value
+            // if it was sent in basis 2, we were looking at zero in that base, and we saw no value, then 1 must have been sent
             else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ZERO_B2 && sensedValue==0){key[i]|=1<<j;}
-            // if it was sent in basis 2, we were looking at one in that base, and saw a value
+            // if it was sent in basis 2, we were looking at one in that base, and saw a value, then 1 was sent
             else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ONE_B2 && sensedValue!=0) {key[i]|=1<<j;}
         }
     }

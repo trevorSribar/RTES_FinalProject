@@ -32,6 +32,10 @@ uint8_t sentenceLL_addSentence(sentenceLinkedList_t *head, char *sentence, uint8
 
     // moving to next head
     sentenceLinkedList_t *newHead = malloc(sizeof(sentenceLinkedList_t));
+    if(newHead==NULL){
+        perror("Malloc error: no memory!\n\r");
+        return SENTENCELL_ERROR;
+    }
     head->next=newHead;
     head=head->next;
 
@@ -66,7 +70,7 @@ uint8_t sentenceLL_removeSentence(sentenceLinkedList_t *tail){
 }
 
 // DOESN'T ENCRYPT, increments the head for the encryption, subtracts from how many sentences has to been encrypted, adds to how many sentences must be sent
-uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t *encryption_head){
+uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t *encryption_head, char *nonce){
     if(numSentencesToEncrypt==0){
         perror("No sentences to encrypt!\n\r");
         return SENTENCELL_ERROR;
@@ -75,6 +79,7 @@ uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t *encryption_head){
         perror("bad call, no valid next entry to iterate to for this linked list\n\r");
         return SENTENCELL_ERROR;
     }
+    memcpy(encryption_head->sentenceNonce, nonce, ENCRYPTION_NONCE_LENGTH);
     // iterate the head
     encryption_head=encryption_head->next;
     // remove one from the number of sentences we have to encrypt and add one to the number senteces we have to send

@@ -3,7 +3,7 @@
 // 4/18/2026
 
 // includes
-#include "generic.h"
+#include "encryption.h"
 
 // defines
 #define SENTENCELL_SENTENCE_SIZE 100 // max number of characters in a sentence
@@ -13,6 +13,7 @@
 typedef struct sentenceLinkedList {
     char sentence[SENTENCELL_SENTENCE_SIZE];
     uint8_t numCharacters;
+    char sentenceNonce[12];
     struct sentenceLinkedList *next;
 } sentenceLinkedList_t;
 
@@ -30,7 +31,7 @@ uint8_t sentenceLL_addSentence(sentenceLinkedList_t *head, char *sentence, uint8
 uint8_t sentenceLL_removeSentence(sentenceLinkedList_t *tail);
 
 // DOESN'T ENCRYPT, increments the head for the encryption, subtracts from how many sentences has to been encrypted, adds to how many sentences must be sent
-uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t *encryption_head);
+uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t *encryption_head, char *nonce);
 
 // getter for the number of senteces we have to encrypt
 uint16_t sentenceLL_getNumSentencesToEncrypt();

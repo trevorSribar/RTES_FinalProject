@@ -5,6 +5,12 @@
 // Modified by Trevor Sribar, 4/18/2026
 //
 //  Final project for running BB84
+//  Service 1 = Servos
+//  Service 2 = Laser/Photosensor
+//  Service 3 = Encryption/Decryption
+//  Service 4 = Keygen
+//  Service 5 = UART
+//  Service 6 = terminal
 //
 / ========================================================================== */
 
@@ -13,7 +19,7 @@
 
 // file includes
 #include "generic.h"
-#include "encryption.h"
+#include "keygen.h"
 #include "sentenceLL.h"
 #include "servo.h"
 
@@ -31,8 +37,17 @@
 // defines
 #define TRUE (1)
 #define FALSE (0)
-#define NUM_THREADS (1+1)
 #define DELAY_SCHEDLUER_MSEC (struct timespec) {0,333333} // delay for 333.333 usec, 3000 Hz
+#define TYPE_SENDER 0
+#define TYPE_RECEIVOR 1
+#define RPI_TYPE TYPE_SENDER
+#define NUM_THREADS (6+1)
+#define SERVO_PRIO              (6)
+#define EXTERNAL_PRIO           (5)
+#define ENCRYPT_DECRYPT_PRIO    (4)
+#define KEYGEN_PRIO             (3)
+#define UART_PRIO               (2)
+#define TERMINAL_PRIO           (1)
 
 
 // added code for finding WCET
@@ -59,11 +74,22 @@ typedef struct {
 // variables
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
-int task_priorities[NUM_THREADS]; // this needs to be initialized
-sentenceLinkedList_t addHead, encryptHead, sendHead;
+int task_priorities[NUM_THREADS] = {0,SERVO_PRIO,EXTERNAL_PRIO,ENCRYPT_DECRYPT_PRIO,KEYGEN_PRIO,UART_PRIO,TERMINAL_PRIO};
+sentenceLinkedList_t addHead, encryptHead, sendHead; 
+uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
+uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
+#if (RPI_TYPE == TYPE_RECEIVOR)
+uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
+#endif
+
 
 // function prototypes
 void *Service_1(void *threadp);
+void *Service_2(void *threadp);
+void *Service_3(void *threadp);
+void *Service_4(void *threadp);
+void *Service_5(void *threadp);
+void *Service_6(void *threadp);
 
 void main(void)
 {
@@ -160,14 +186,98 @@ void main(void)
 }
 
 // services
-void *Service_1(void *threadp)
+// servo service
+void *Service_1(void *threadp) 
 {
-    printf("Service 1 started");
+    uint16_t servoMoveCount = 0;
+    printf("Servo service started\t");
 
     while(!abort_service[1])
     {
         sem_wait(&task_sems[1]);
-        // do something
+        servoPosition[servoMoveCount] = servo_set_angle_random();
+        servoMoveCount++;
+    }
+
+    pthread_exit((void *)0);
+}
+
+// external periferal service TODO must fix modify change to do
+void *Service_2(void *threadp) 
+{
+    printf("external periferal service started\t");
+
+    while(!abort_service[2])
+    {
+        sem_wait(&task_sems[2]);
+    }
+
+    pthread_exit((void *)0);
+}
+
+// Encryption service
+void *Service_3(void *threadp) 
+{
+    printf("Encryption service started\t");
+
+    while(!abort_service[3])
+    {
+        sem_wait(&task_sems[3]);
+        // if we have any data to encrypt
+        while(sentenceLL_getNumSentencesToEncrypt()!=0){
+            // create a new nonce
+            encryption_updateNonce();
+            // encrypt the data where we need to
+            encryption_encryptData(encryptHead.sentence, encryptHead.numCharacters);
+            // say that we have encrypted the data
+            sentenceLL_encryptedSentence(&encryptHead,encryption_getNonceAddress());
+        }
+    }
+
+    pthread_exit((void *)0);
+}
+
+// keygen service
+void *Service_4(void *threadp) 
+{
+    printf("Keygen service started\t");
+
+    while(!abort_service[4])
+    {
+        sem_wait(&task_sems[4]);
+        // function changes based on whether we are the sender or receiver pi
+        #if (RPI_TYPE == TYPE_SENDER)
+        keygen_sender(servoPosition,communicatedServoBasis);
+        #else
+        keygen_receiver(sensedData,servoPosition,communicatedServoBasis);
+        #endif
+    }
+
+    pthread_exit((void *)0);
+}
+
+// UART service TODO must fix modify change to do
+void *Service_5(void *threadp) 
+{
+    printf("UART service started\t");
+
+    while(!abort_service[5])
+    {
+        sem_wait(&task_sems[5]);
+        
+    }
+
+    pthread_exit((void *)0);
+}
+
+// terminal service TODO must fix modify change to do
+void *Service_6(void *threadp){
+    printf("Terminal service started\t");
+
+    while(!abort_service[6])
+    {
+        sem_wait(&task_sems[6]);
+        
     }
 
     pthread_exit((void *)0);

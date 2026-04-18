@@ -14,6 +14,7 @@
 // file includes
 #include "generic.h"
 #include "encryption.h"
+#include "sentenceLL.h"
 
 // includes for tasks, schedueling, and logging
 #include <pthread.h>
@@ -58,6 +59,9 @@ typedef struct {
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
 int task_priorities[NUM_THREADS]; // this needs to be initialized
+sentenceLinkedList_t addHead;
+sentenceLinkedList_t encryptHead;
+sentenceLinkedList_t sendHead;
 
 // function prototypes
 void *Service_1(void *threadp);
@@ -86,6 +90,7 @@ void main(void)
 
     // initalizing other files
     encryption_init();
+    sentenceLL_init(&addHead, &encryptHead, &sendHead);
 
     // configuring the main thread
     mainpid=getpid();

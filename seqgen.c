@@ -15,6 +15,7 @@
 #include "generic.h"
 #include "encryption.h"
 #include "sentenceLL.h"
+#include "servo.h"
 
 // includes for tasks, schedueling, and logging
 #include <pthread.h>
@@ -91,6 +92,7 @@ void main(void)
     // initalizing other files
     encryption_init();
     sentenceLL_init(&addHead, &encryptHead, &sendHead);
+    servo_init();
 
     // configuring the main thread
     mainpid=getpid();

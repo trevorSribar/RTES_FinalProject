@@ -4,6 +4,7 @@
 
 // includes
 #include <mbedtls/chacha20.h>
+#include "generic.h"
 
 // defines
 #define ENCRYPTION_ERROR 1

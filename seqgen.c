@@ -37,6 +37,7 @@
 #define FINDING_WCET TRUE
 #if (FINDING_WCET == TRUE)
 #define USEC_PER_SEC 1000000
+#define NSEC_PER_USEC 1000
 #define NUM_TIMES_TEST 10000 // number of times run WCET for each function
 #define PRINT 0
 #define LOG 1
@@ -81,7 +82,10 @@ void main(void)
 
     printf("Initializing BB84 Project\n");
     clock_gettime(CLOCK_MONOTONIC,&start_time); // start_time->tv_sec, start_time->tv_nsec
-    syslog(LOG_INFO, "Initalization start:\tsec=%d\tnsec=%d\n", start_time->tv-sec, start_time->tv_nsec);
+    syslog(LOG_INFO, "Initalization start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
+
+    // initalizing other files
+    encryption_init();
 
     // configuring the main thread
     mainpid=getpid();
@@ -140,11 +144,12 @@ void main(void)
 
     // joining threads and clearing semaphors
     for(uint8_t i=1;i<NUM_THREADS;i++){
-        abort_service[i] = TRUE:
+        abort_service[i] = TRUE;
         sem_post(&task_sems[i]);
         pthread_join(threads[i], NULL);
         sem_destroy(&task_sems[i]);
     }
+    encryption_destroy();
     printf("\nEnd Program\n");
     return;
 }
@@ -172,22 +177,13 @@ void *Service_WCET(void *threadp){
     struct timespec startTime;
     struct timespec endTime;
     for(int i = 1; i < NUM_TIMES_TEST; i++){
-        //re generate nonce, input
-        for(uint8_t i = 0; i < 12; i++){
-            nonce[i] = rand();
+        for(int j = 1; j < NUM_THREADS; j++){
+            clock_gettime(CLOCK_MONOTONIC,&startTime);
+            sem_post(&task_sems[j]);
+            sched_yield();
+            clock_gettime(CLOCK_MONOTONIC,&endTime);
+            getElapsedTime(j,startTime,endTime);
         }
-        for(uint8_t i = 0; i < 80; i++){
-            input[i] = rand();
-        }
-        for(uint16_t i = 0; i < 256; i++){
-            sendServo[i] = rand();
-            receiveServo[i] = rand();
-        }
-        clock_gettime(CLOCK_MONOTONIC,&startTime);
-        sem_post(&semS1);
-        sched_yield();
-        clock_gettime(CLOCK_MONOTONIC,&endTime);
-        getElapsedTime(1,startTime,endTime);
     }
     pthread_exit((void *)0);
 }
@@ -195,7 +191,7 @@ void *Service_WCET(void *threadp){
 // gets the epalsied time and adds it to the WCET if it is the greatest time that has elapsed for that function
 static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime){
     uint32_t completionTimeS_inUS = (completionTime.tv_sec - releaseTime.tv_sec)*USEC_PER_SEC;
-    uint32_t completionTimeUS = completionTimeS_inUS + completionTime.tv_usec - releaseTime.tv_usec;
+    uint32_t completionTimeUS = completionTimeS_inUS + (completionTime.tv_nsec - releaseTime.tv_nsec)/NSEC_PER_USEC;
     if(completionTimeUS > WCET_task[task]){
         WCET_task[task] = completionTimeUS;
     }

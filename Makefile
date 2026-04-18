@@ -1,30 +1,30 @@
-INCLUDE_DIRS = 
-LIB_DIRS = 
+INCLUDE_DIRS = -Iheaders
+LIB_DIRS =
 CC=gcc
 
 CDEFS=
 CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
 LIBS= -lrt -lmbedcrypto
 
-HFILES= 
-CFILES= seqgen.c
+HFILES= $(wildcard headers/*.h)
+CFILES= seqgen.c $(wildcard sources/*.c)
 
 SRCS= ${HFILES} ${CFILES}
-OBJS= ${CFILES:.c=.o}
+OBJS= $(patsubst %.c,%.o,$(CFILES))
 
 all:	seqgen
 
 clean:
-	-rm -f *.o *.d
+	-rm -f *.o sources/*.o *.d
 	-rm -f seqgen
 
 distclean:
-	-rm -f *.o *.d
+	-rm -f *.o sources/*.o *.d
 
 seqgen: ${OBJS}
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.o $(LIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 depend:
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) -c $< -o $@

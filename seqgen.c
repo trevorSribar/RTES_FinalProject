@@ -30,55 +30,35 @@
 #define TRUE (1)
 #define FALSE (0)
 #define NUM_THREADS (1+1)
-#define DELAY_33P33_MSEC (struct timespec) {0,333333} // delay for 333.333 usec, 3000 Hz
+#define DELAY_SCHEDLUER_MSEC (struct timespec) {0,333333} // delay for 333.333 usec, 3000 Hz
 
 
-// added code for finding WCET of each task and missed deadlines
+// added code for finding WCET
+#define FINDING_WCET TRUE
+#if (FINDING_WCET == TRUE)
 #define USEC_PER_SEC 1000000
+#define NUM_TIMES_TEST 10000 // number of times run WCET for each function
 #define PRINT 0
 #define LOG 1
 #define FIND_MODE PRINT
-#define FINDING_WCET TRUE
-#define FIND_MISSES FALSE
-
-#if (FINDING_WCET == TRUE)
-#define DELAY_500_US (struct timespec) {0,500000};
-#define NUM_TIMES_TEST 10000 // number of times run WCET for each function
 uint32_t WCET_task[NUM_THREADS] = {0};
 void print_WCETs();
 void *Service_WCET(void *threadp);
-static inline void getElapsedTime(uint8_t task, struct timeval releaseTime, struct timeval completionTime);
+static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime);
 #endif
 
-// added code for testing encryption
-char input[80];
-char output[80];
-// added code for testing keygen
-char sendServo[256];
-char receiveServo[256];
-// end added code
-
-//
-// variables
-//
-sem_t task_sems[NUM_THREADS-1];
-int task_priorities[NUM_THREADS]; // this needs to be initialized
-struct timeval start_time_val;
-int abortS1=FALSE;
-
 // structs
-typedef struct
-{
+typedef struct {
     int threadIdx;
     unsigned long long sequencePeriods;
 } threadParams_t;
 
-// function prototypes
-void *Sequencer(void *threadp);
-void *Service_1(void *threadp);
-double getTimeMsec(void);
-void print_scheduler(void);
+// variables
+sem_t task_sems[NUM_THREADS-1];
+int task_priorities[NUM_THREADS]; // this needs to be initialized
 
+// function prototypes
+void *Service_1(void *threadp);
 
 void main(void)
 {
@@ -169,12 +149,7 @@ void main(void)
 // services
 void *Service_1(void *threadp)
 {
-    struct timeval current_time_val;
-    unsigned long long S1Cnt=0;
-    threadParams_t *threadParams = (threadParams_t *)threadp;
-
-    gettimeofday(&current_time_val, (struct timezone *)0);
-    printf("Frame Sampler thread @ sec=%d, msec=%d\n", (int)(current_time_val.tv_sec-start_time_val.tv_sec), (int)current_time_val.tv_usec/USEC_PER_MSEC);
+    printf("Service 1 started");
 
     while(!abortS1)
     {
@@ -225,16 +200,10 @@ void *Service_1(void *threadp)
                 }
             }
         }
-        // if(mbedtls_chacha20_crypt(key, nonce, counter, 80, input, output)!=0){
-        //     printf("Encrypt Error\n\r");
-        // }
-
     }
 
     pthread_exit((void *)0);
 }
-
-
 
 
 #if (FINDING_WCET == TRUE)
@@ -242,8 +211,8 @@ void *Service_1(void *threadp)
 void *Service_WCET(void *threadp){
     printf("WCET finder started\n");
     syslog(LOG_INFO,("WCET finder started\n"));
-    struct timeval startTime;
-    struct timeval endTime;
+    struct timespec startTime;
+    struct timespec endTime;
     for(int i = 1; i < NUM_TIMES_TEST; i++){
         //re generate nonce, input
         for(uint8_t i = 0; i < 12; i++){
@@ -256,10 +225,10 @@ void *Service_WCET(void *threadp){
             sendServo[i] = rand();
             receiveServo[i] = rand();
         }
-        gettimeofday(&startTime,(struct timezone *)0);
+        clock_gettime(CLOCK_MONOTONIC,&startTime);
         sem_post(&semS1);
         sched_yield();
-        gettimeofday(&endTime,(struct timezone *)0);
+        clock_gettime(CLOCK_MONOTONIC,&endTime);
         getElapsedTime(1,startTime,endTime);
     }
     abortS1=TRUE;
@@ -268,7 +237,7 @@ void *Service_WCET(void *threadp){
 }
 
 // gets the epalsied time and adds it to the WCET if it is the greatest time that has elapsed for that function
-static inline void getElapsedTime(uint8_t task, struct timeval releaseTime, struct timeval completionTime){
+static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime){
     uint32_t completionTimeS_inUS = (completionTime.tv_sec - releaseTime.tv_sec)*USEC_PER_SEC;
     uint32_t completionTimeUS = completionTimeS_inUS + completionTime.tv_usec - releaseTime.tv_usec;
     if(completionTimeUS > WCET_task[task]){

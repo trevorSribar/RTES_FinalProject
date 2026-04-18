@@ -6,7 +6,9 @@
 #include <mbedtls/chacha20.h>
 
 // defines
-#define ENCRYPT_ERROR 1
+#define ENCRYPTION_ERROR 1
+#define ENCRYPTION_KEY_LENGTH 32
+#define ENCRYPTION_NONCE_LENGTH 12
 
 //
 // functions
@@ -18,7 +20,14 @@ uint8_t encryption_init();
 // generates a new nonce, a 12 byte string
 void encryption_updateNonce();
 
-void encryption_getNonceAddress();
+// returns the nonce address
+unsigned char *encryption_getNonceAddress();
+
+// sets the key array to the passed key;
+void encryption_setKey(char *newKey);
+
+// gets the key array
+unsigned char *encryption_getKey();
 
 // encrypts input character string, the character string will be replaced with the encrypted data
 uint8_t encryption_encryptData(char *input, uint16_t inputSize);

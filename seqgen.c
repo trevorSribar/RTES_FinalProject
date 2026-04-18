@@ -11,28 +11,20 @@
 // This is necessary for CPU affinity macros in Linux
 #define _GNU_SOURCE
 
-// general incudes
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/sysinfo.h>
+// file includes
+#include "generic.h"
+#include "encryption.h"
 
-// includes for tasks & schedueling
+// includes for tasks, schedueling, and logging
 #include <pthread.h>
 #include <sched.h>
-#include <time.h>
 #include <semaphore.h>
-
-// includes for logging
 #include <syslog.h>
 #include <sys/time.h>
+#include <time.h>
 
 // includes for errors
 #include <errno.h>
-
-//inlcudes for encyrption
-#include <mbedtls/chacha20.h>
 
 // defines
 #define TRUE (1)

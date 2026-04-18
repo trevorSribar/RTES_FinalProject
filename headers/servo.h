@@ -1,5 +1,5 @@
 
-#include <WiringPi.h>
+#include "generic.h"
 
 #define SERVO_PIN 1 
 #define PWM_CLOCK 19200U * 1000U

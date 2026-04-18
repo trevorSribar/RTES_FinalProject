@@ -68,10 +68,7 @@ void main(void)
     pthread_attr_t rt_sched_attr[NUM_THREADS];
     struct sched_param rt_param[NUM_THREADS];
     int rt_max_prio, rt_min_prio;
-
-    // function variables
-    struct timespec start_time;
-    int i, rc, scope;
+    int rc;
     
     // main parameters
     struct sched_param main_param;
@@ -79,6 +76,8 @@ void main(void)
     pid_t mainpid;
 
     // logging
+    struct timespec start_time;
+
     printf("Initializing BB84 Project\n");
     clock_gettime(CLOCK_MONOTONIC,&start_time); // start_time->tv_sec, start_time->tv_nsec
     syslog(LOG_INFO, "Initalization start:\tsec=%d\tnsec=%d\n", start_time->tv-sec, start_time->tv_nsec);
@@ -137,7 +136,7 @@ void main(void)
         printf("WCET joined\n");
     #endif
 
-    for(i=1;i<NUM_THREADS;i++)
+    for(uint8_t i=1;i<NUM_THREADS;i++)
         pthread_join(threads[i], NULL);
     sem_post(&semS1);
     mbedtls_chacha20_free(&ctx);

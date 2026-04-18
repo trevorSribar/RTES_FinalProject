@@ -13,14 +13,21 @@ static uint16_t numSentencesToSend = 0;
 // functions
 //
 
+// initializes the linked list, with a head for each adding, encryting, and sending
+void sentenceLL_init(sentenceLinkedList_t *addHead, sentenceLinkedList_t *encryptHead, sentenceLinkedList_t *sendHead){
+    addHead =  malloc(sizeof(sentenceLinkedList_t));
+    encryptHead = addHead;
+    sendHead = addHead;
+}
+
 // adds an element to the linked list and iterates the head to that element, adds to how many sentences must be encrypted
 uint8_t sentenceLL_addSentence(sentenceLinkedList_t *head, char *sentence, uint8_t length){
     if(length>SENTENCELL_SENTENCE_SIZE){
-        perror("Length of %u is to big to add to the linked list!\n\r", length);
+        perror("Length is to big to add to the linked list!\n\r");
         return SENTENCELL_ERROR;
     }
     // populating current head
-    head->sentence=sentence;
+    memcpy(head->sentence, sentence, length);
     head->numCharacters=length;
 
     // moving to next head
@@ -73,6 +80,7 @@ uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t *encryption_head){
     // remove one from the number of sentences we have to encrypt and add one to the number senteces we have to send
     numSentencesToEncrypt--;
     numSentencesToSend++;
+    return 0;
 }
 
 // getter for the number of senteces we have to encrypt

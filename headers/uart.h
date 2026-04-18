@@ -1,8 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "generic.h"
 #include <syslog.h>
-#include <WiringPi.h>
 #include <WiringSerial.h>
 
 #define BAUD_RATE 115200

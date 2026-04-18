@@ -60,9 +60,7 @@ typedef struct {
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
 int task_priorities[NUM_THREADS]; // this needs to be initialized
-sentenceLinkedList_t addHead;
-sentenceLinkedList_t encryptHead;
-sentenceLinkedList_t sendHead;
+sentenceLinkedList_t addHead, encryptHead, sendHead;
 
 // function prototypes
 void *Service_1(void *threadp);

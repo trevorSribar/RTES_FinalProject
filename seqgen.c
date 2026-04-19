@@ -84,12 +84,12 @@ uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 
 
 // function prototypes
-void *Service_1(void *threadp);
-void *Service_2(void *threadp);
-void *Service_3(void *threadp);
-void *Service_4(void *threadp);
-void *Service_5(void *threadp);
-void *Service_6(void *threadp);
+void *Service_1_Servos(void *threadp);
+void *Service_2_Periferal(void *threadp);
+void *Service_3_Encrypt(void *threadp);
+void *Service_4_Keygen(void *threadp);
+void *Service_5_UART(void *threadp);
+void *Service_6_Terminal(void *threadp);
 
 void main(void)
 {
@@ -187,7 +187,7 @@ void main(void)
 
 // services
 // servo service
-void *Service_1(void *threadp) 
+void *Service_1_Servos(void *threadp) 
 {
     uint16_t servoMoveCount = 0;
     printf("Servo service started\t");
@@ -203,7 +203,7 @@ void *Service_1(void *threadp)
 }
 
 // external periferal service TODO must fix modify change to do
-void *Service_2(void *threadp) 
+void *Service_2_Periferal(void *threadp) 
 {
     printf("external periferal service started\t");
 
@@ -216,7 +216,7 @@ void *Service_2(void *threadp)
 }
 
 // Encryption service
-void *Service_3(void *threadp) 
+void *Service_3_Encrypt(void *threadp) 
 {
     printf("Encryption service started\t");
 
@@ -238,7 +238,7 @@ void *Service_3(void *threadp)
 }
 
 // keygen service
-void *Service_4(void *threadp) 
+void *Service_4_Keygen(void *threadp) 
 {
     printf("Keygen service started\t");
 
@@ -257,7 +257,7 @@ void *Service_4(void *threadp)
 }
 
 // UART service TODO must fix modify change to do
-void *Service_5(void *threadp) 
+void *Service_5_UART(void *threadp) 
 {
     printf("UART service started\t");
 
@@ -271,7 +271,7 @@ void *Service_5(void *threadp)
 }
 
 // terminal service TODO must fix modify change to do
-void *Service_6(void *threadp){
+void *Service_6_Terminal(void *threadp){
     printf("Terminal service started\t");
 
     while(!abort_service[6])

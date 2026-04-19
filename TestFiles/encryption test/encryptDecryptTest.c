@@ -1,3 +1,5 @@
+// this file creates two tasks, one for encrytion and one for decryption that uses the linked list with a max character length sentence
+
 /* ========================================================================== /
 // Sam Siewert, December 2017
 // Modified by Trevor Sribar, 3/29/2026

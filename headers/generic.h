@@ -7,4 +7,4 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/sysinfo.h>
-#include <WiringPi.h>
+#include <wiringPi.h>

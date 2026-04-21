@@ -26,7 +26,6 @@ int terminal_read_char()
 
     if(value == '\n')
     {
-        temp->sentence[sentence_count] = '\0';
         sentenceLL_addSentence(temp, temp->sentence, sentence_count);
         temp = (sentenceLinkedList_t *) malloc(sizeof(sentenceLinkedList_t));
         sentence_count = 0;

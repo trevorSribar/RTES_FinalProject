@@ -40,6 +40,8 @@
 
 // defines
 #define DELAY_SCHEDLUER_MSEC (struct timespec) {0,333333} // delay for 333.333 usec, 3000 Hz
+#define TRUE 1
+#define FALSE 0
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1
 #define RPI_TYPE TYPE_SENDER
@@ -185,7 +187,7 @@ void main(void)
     for(uint16_t i = 0; i < ENCRYPTION_KEY_LENGTH*8;i++){
         servoSendAllData[i] = rand()%4;
         servoReceiveAllData[i] = rand()%4;
-        servoReceuveMeasured[i] = if(servoSendAllData[i]==servoReceiveAllData[i]);
+        servoReceuveMeasured[i] = (servoSendAllData[i]==servoReceiveAllData[i]);
         servoSendBasis[i] = servoSendAllData[i]%2;
         servoReceiveBasis[i] = servoReceiveAllData[i]%2;
     }
@@ -201,6 +203,7 @@ void main(void)
     if(sentenceLL_addSentence(&addHead, sentence, length)==SENTENCELL_ERROR) {printf("Failed to add sentence\n\r");};
     sleep(2);
     sem_post(&task_sems[3]);
+    sleep(2);
 
     // joining threads and clearing semaphors
     for(uint8_t i=1;i<NUM_THREADS;i++){
@@ -219,11 +222,10 @@ void main(void)
 // Dencryption service
 void *Service_2_Decrypt(void *threadp) 
 {
-    printf("decryption service started\t");
-
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
+        printf("decryption service started\n\r");
         while(sentenceLL_getNumSentencesToSend()!=0){
             // decrypt the data
             if(encryption_decryptData(sendHead->sentence, sendHead->numCharacters, sendHead->sentenceNonce)==ENCRYPTION_ERROR){
@@ -246,11 +248,10 @@ void *Service_2_Decrypt(void *threadp)
 // Encryption service
 void *Service_1_Encrypt(void *threadp) 
 {
-    printf("Encryption service started\t");
-
     while(!abort_service[1])
     {
         sem_wait(&task_sems[1]);
+        printf("Encryption service started\n\r");
         // if we have any data to encrypt
         while(sentenceLL_getNumSentencesToEncrypt()!=0){
             // create a new nonce
@@ -268,6 +269,7 @@ void *Service_1_Encrypt(void *threadp)
             if(sentenceLL_encryptedSentence(&encryptHead,encryption_getNonceAddress())==SENTENCELL_ERROR) {break;}
         }
         sem_post(&task_sems[2]);
+        printf("\n\rEncryption done\n\r");
         abort_service[1] == TRUE;
     }
 
@@ -277,14 +279,15 @@ void *Service_1_Encrypt(void *threadp)
 // keygen service
 void *Service_3_Keygen(void *threadp) 
 {
-    printf("Keygen service started\t");
 
     while(!abort_service[3])
     {
         sem_wait(&task_sems[3]);
+        printf("Keygen service started\n\r");
         keygen_sender(servoSendAllData,servoReceiveBasis);
         char tempKey[ENCRYPTION_KEY_LENGTH];
-        char key[ENCRYPTION_KEY_LENGTH] = encryption_getKey();
+        char *key;
+        key = encryption_getKey();
         for(uint8_t i = 0; i < ENCRYPTION_KEY_LENGTH; i++){
             tempKey[i]=key[i];
         }
@@ -292,9 +295,10 @@ void *Service_3_Keygen(void *threadp)
         key = encryption_getKey();
         for(uint8_t i = 0; i < ENCRYPTION_KEY_LENGTH; i++){
             if(tempKey[i]!=key[i]){
-                printf("Key error #%d\tK1: %d\tK2: %d\n\r");
+                printf("Key error #%d\tK1: %d\tK2: %d\n\r",i,tempKey[i],key[i]);
             }
         }
+        printf("\n\rKeygen done\n\r");
         sem_post(&task_sems[1]);
         abort_service[3] == TRUE;
     }

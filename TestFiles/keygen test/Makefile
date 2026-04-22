@@ -6,8 +6,8 @@ CDEFS=
 CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
 LIBS= -lrt -lmbedcrypto
 
-HFILES= ../../headers/encryption.h ../../headers/generic.h ../../headers/keygen.h
-CFILES= keygenTest.c ../../sources/encryption.c ../../sources/keygen.c
+HFILES= ../../headers/encryption.h ../../headers/generic.h ../../headers/keygen.h ../../headers/sentenceLL.h
+CFILES= keygenTest.c ../../sources/encryption.c ../../sources/keygen.c ../../sources/sentenceLL.c
 
 SRCS= ${HFILES} ${CFILES}
 OBJS= $(patsubst %.c,%.o,$(CFILES))

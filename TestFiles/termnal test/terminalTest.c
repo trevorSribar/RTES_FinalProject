@@ -55,8 +55,6 @@ static void dump_ll_snapshot(void)
 
 		printf("node[%u] @ %p\n", i, (void *)node);
 		printf("  numCharacters: %u\n", node->numCharacters);
-		printf("\n");
-
 		printf("  sentence: ");
 		fwrite(node->sentence, 1, node->numCharacters, stdout);
 		printf("\n");

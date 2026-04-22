@@ -23,6 +23,8 @@
 
 // file includes
 #include "generic.h"
+#include "keygen.h"
+#include "encryption.h"
 #include "sentenceLL.h"
 
 // includes for tasks, schedueling, and logging
@@ -41,7 +43,7 @@
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1
 #define RPI_TYPE TYPE_SENDER
-#define NUM_THREADS (2+1)
+#define NUM_THREADS (3+1)
 #define SERVO_PRIO              (6)
 #define EXTERNAL_PRIO           (5)
 #define ENCRYPT_DECRYPT_PRIO    (4)
@@ -74,13 +76,19 @@ typedef struct {
 // variables
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
-int task_priorities[NUM_THREADS] = {0,SERVO_PRIO,EXTERNAL_PRIO};
+int task_priorities[NUM_THREADS] = {0,SERVO_PRIO,EXTERNAL_PRIO,KEYGEN_PRIO};
 sentenceLinkedList_t *addHead, *encryptHead, *sendHead; 
+uint8_t servoSendAllData[ENCRYPTION_KEY_LENGTH*8];
+uint8_t servoReceiveAllData[ENCRYPTION_KEY_LENGTH*8];
+uint8_t servoReceuveMeasured[ENCRYPTION_KEY_LENGTH*8];
+uint8_t servoSendBasis[ENCRYPTION_KEY_LENGTH*8];
+uint8_t servoReceiveBasis[ENCRYPTION_KEY_LENGTH*8];
 
 
 // function prototypes
 void *Service_1_Encrypt(void *threadp);
 void *Service_2_Decrypt(void *threadp);
+void *Service_3_Keygen(void *threadp);
 
 void main(void)
 {
@@ -154,6 +162,10 @@ void main(void)
     rc=pthread_create(&threads[2],&rt_sched_attr[2],Service_2_Decrypt, (void *)&(threadParams[2]));
     if(rc < 0)  { perror("\nError creating service 2");}
     else        {printf("\tS2");}
+
+    rc=pthread_create(&threads[3],&rt_sched_attr[3],Service_3_Keygen, (void *)&(threadParams[3]));
+    if(rc < 0)  { perror("\nError creating service 2");}
+    else        {printf("\tS3");}
  
     // Finding WCETs
     #if (FINDING_WCET == TRUE)
@@ -169,12 +181,14 @@ void main(void)
     #endif
     printf("\n\r");
 
-    // creating the key
-    unsigned char key[ENCRYPTION_KEY_LENGTH];
-    for(uint8_t i = 0; i < ENCRYPTION_KEY_LENGTH; i++){
-        key[i] = rand();
+    // creating the servo data
+    for(uint16_t i = 0; i < ENCRYPTION_KEY_LENGTH*8;i++){
+        servoSendAllData[i] = rand()%4;
+        servoReceiveAllData[i] = rand()%4;
+        servoReceuveMeasured[i] = if(servoSendAllData[i]==servoReceiveAllData[i]);
+        servoSendBasis[i] = servoSendAllData[i]%2;
+        servoReceiveBasis[i] = servoReceiveAllData[i]%2;
     }
-    encryption_setKey(key);
     // creating sentences to send and releasing the tasks
     char sentence[] = {"Do what you must to get this project done, cuz you are presenting on Thursday and that is too close."};
     uint8_t length = 100;
@@ -186,7 +200,7 @@ void main(void)
     if(sentenceLL_addSentence(&addHead, sentence, length)==SENTENCELL_ERROR) {printf("Failed to add sentence\n\r");};
     if(sentenceLL_addSentence(&addHead, sentence, length)==SENTENCELL_ERROR) {printf("Failed to add sentence\n\r");};
     sleep(2);
-    sem_post(&task_sems[1]);
+    sem_post(&task_sems[3]);
 
     // joining threads and clearing semaphors
     for(uint8_t i=1;i<NUM_THREADS;i++){
@@ -255,6 +269,34 @@ void *Service_1_Encrypt(void *threadp)
         }
         sem_post(&task_sems[2]);
         abort_service[1] == TRUE;
+    }
+
+    pthread_exit((void *)0);
+}
+
+// keygen service
+void *Service_3_Keygen(void *threadp) 
+{
+    printf("Keygen service started\t");
+
+    while(!abort_service[3])
+    {
+        sem_wait(&task_sems[3]);
+        keygen_sender(servoSendAllData,servoReceiveBasis);
+        char tempKey[ENCRYPTION_KEY_LENGTH];
+        char key[ENCRYPTION_KEY_LENGTH] = encryption_getKey();
+        for(uint8_t i = 0; i < ENCRYPTION_KEY_LENGTH; i++){
+            tempKey[i]=key[i];
+        }
+        keygen_receiver(servoReceuveMeasured,servoReceiveAllData,servoSendBasis);
+        key = encryption_getKey();
+        for(uint8_t i = 0; i < ENCRYPTION_KEY_LENGTH; i++){
+            if(tempKey[i]!=key[i]){
+                printf("Key error #%d\tK1: %d\tK2: %d\n\r");
+            }
+        }
+        sem_post(&task_sems[1]);
+        abort_service[3] == TRUE;
     }
 
     pthread_exit((void *)0);

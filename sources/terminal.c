@@ -1,12 +1,13 @@
 #include "terminal.h"
 
-static int sentence_count = 0;
-static sentenceLinkedList_t *temp = NULL;
+static int sentence_length = 0;
+static char input_buffer[SENTENCELL_SENTENCE_SIZE];
+static sentenceLinkedList_t *head = NULL;
 
-void terminal_init(void)
+void terminal_init(sentenceLinkedList_t *linkedhead)
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
-    temp = (sentenceLinkedList_t *) malloc(sizeof(sentenceLinkedList_t));
+    head = linkedhead;
 }
 
 int terminal_read_char()
@@ -26,19 +27,17 @@ int terminal_read_char()
 
     if(value == '\n')
     {
-        sentenceLL_addSentence(temp, temp->sentence, sentence_count);
-        temp = (sentenceLinkedList_t *) malloc(sizeof(sentenceLinkedList_t));
-        sentence_count = 0;
+        sentenceLL_addSentence(head, input_buffer, sentence_length);
+        sentence_length = 0;
         return 0;
     }
 
-    temp->sentence[sentence_count] = (char) value;
-    sentence_count++;
-    if(sentence_count == SENTENCELL_SENTENCE_SIZE)
+    input_buffer[sentence_length] = (char) value;
+    sentence_length++;
+    if(sentence_length == SENTENCELL_SENTENCE_SIZE)
     {
-        sentenceLL_addSentence(temp, temp->sentence, sentence_count);
-        temp = (sentenceLinkedList_t *) malloc(sizeof(sentenceLinkedList_t));
-        sentence_count = 0;
+        sentenceLL_addSentence(head, input_buffer, sentence_length);
+        sentence_length = 0;
     }
 	return 0;
 }

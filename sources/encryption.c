@@ -74,3 +74,19 @@ uint8_t encryption_encryptData(char *input, uint16_t inputSize){
     return 0;
 }
 
+// decrypts the input character string, the chacaracter string will be replaced with the encrypted data
+uint8_t encryption_decryptData(char *input, uint16_t inputSize, unsigned char *currentNonce){
+    // storing the output data
+    char output[inputSize];
+
+    // encryting the data
+    if(mbedtls_chacha20_crypt(key, currentNonce, counter, inputSize, input, output)!=0){
+        perror("Encryption Error\n\r");
+        return ENCRYPTION_ERROR;
+    }
+    // setting updating the input to be the output
+    for(uint16_t i = 0; i < inputSize; i++){
+        input[i] = output[i];
+    }
+    return 0;
+}

@@ -75,7 +75,7 @@ typedef struct {
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
 int task_priorities[NUM_THREADS] = {0,SERVO_PRIO,EXTERNAL_PRIO,ENCRYPT_DECRYPT_PRIO,KEYGEN_PRIO,UART_PRIO,TERMINAL_PRIO};
-sentenceLinkedList_t addHead, encryptHead, sendHead; 
+sentenceLinkedList_t *addHead, *encryptHead, *sendHead; 
 uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
 uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
 #if (RPI_TYPE == TYPE_RECEIVOR)

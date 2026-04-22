@@ -35,3 +35,6 @@ unsigned char *encryption_getKey();
 
 // encrypts input character string, the character string will be replaced with the encrypted data
 uint8_t encryption_encryptData(char *input, uint16_t inputSize);
+
+// decrypts the input character string, the chacaracter string will be replaced with the encrypted data
+uint8_t encryption_decryptData(char *input, uint16_t inputSize,unsigned char *currentNonce);

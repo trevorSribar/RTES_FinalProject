@@ -2,6 +2,7 @@
 #define TERMINAL_H
 
 #include "generic.h"
+#include "sentenceLL.h"
 
 // Optional setup hook for future terminal config.
 void terminal_init(sentenceLinkedList_t **linkedhead);

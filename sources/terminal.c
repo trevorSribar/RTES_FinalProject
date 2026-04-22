@@ -35,11 +35,11 @@ int terminal_read_char()
 	return 0;
 }
 
-void push_scentence_to_terminal(scentanceLinkedList_t **tail){
+void terminal_printDecryptedSentence(sentenceLinkedList_t **tail){
     char *old_sentence;
     uint8_t old_sentence_length;
     char nonce[ENCRYPTION_NONCE_LENGTH];
-    get_sentence(tail, old_sentence, &old_sentence_length, nonce);
+    sentenceLL_getSentence(tail, old_sentence, &old_sentence_length, nonce);
 
     encryption_decryptData(old_sentence, old_sentence_length, encryption_getNonceAddress(), nonce);
 
@@ -48,4 +48,6 @@ void push_scentence_to_terminal(scentanceLinkedList_t **tail){
         printf("%c", old_sentence[i]);
     }
     printf("\n");
+
+    sentenceLL_removeSentence(tail);
 }

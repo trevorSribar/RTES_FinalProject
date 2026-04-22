@@ -109,3 +109,11 @@ void sentenceLL_destroy(sentenceLinkedList_t **sendHead){
         *sendHead = temp;
     }
 }
+
+void get_sentence(sentenceLinkedList_t **tail, char *sentence, uint8_t *length, char *nonce){
+    sentenceLinkedList_t *trueTail = *tail;
+
+    memcpy(sentence, trueTail->sentence, trueTail->numCharacters);
+    *length = trueTail->numCharacters;
+    memcpy(nonce, trueTail->sentenceNonce, ENCRYPTION_NONCE_LENGTH);
+}

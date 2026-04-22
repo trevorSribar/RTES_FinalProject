@@ -41,3 +41,6 @@ uint16_t sentenceLL_getNumSentencesToSend();
 
 // frees all memory related to the linked list
 void sentenceLL_destroy(sentenceLinkedList_t **sendHead);
+
+// getter for the sentence array and its length
+void get_sentence(sentenceLinkedList_t **tail, char *sentence, uint8_t *length, char *nonce);

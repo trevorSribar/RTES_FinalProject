@@ -37,8 +37,6 @@
 #include <errno.h>
 
 // defines
-#define TRUE (1)
-#define FALSE (0)
 #define DELAY_SCHEDLUER_MSEC (struct timespec) {0,333333} // delay for 333.333 usec, 3000 Hz
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1

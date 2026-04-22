@@ -1,3 +1,6 @@
+// this is the servo test code
+// moves the servo to a random location, then waits a second and does it 9 more times
+
 /* ========================================================================== /
 // Sam Siewert, December 2017
 // Modified by Trevor Sribar, 3/29/2026
@@ -19,8 +22,6 @@
 
 // file includes
 #include "generic.h"
-#include "keygen.h"
-#include "sentenceLL.h"
 #include "servo.h"
 
 // includes for tasks, schedueling, and logging
@@ -39,17 +40,14 @@
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1
 #define RPI_TYPE TYPE_SENDER
-#define NUM_THREADS (6+1)
-#define SERVO_PRIO              (6)
-#define EXTERNAL_PRIO           (5)
-#define ENCRYPT_DECRYPT_PRIO    (4)
-#define KEYGEN_PRIO             (3)
-#define UART_PRIO               (2)
-#define TERMINAL_PRIO           (1)
+#define NUM_THREADS (1+1)
+#define SERVO_PRIO              6
+
+#define NUM_RUN_SERVO 30
 
 
 // added code for finding WCET
-#define FINDING_WCET TRUE
+#define FINDING_WCET FALSE
 #if (FINDING_WCET == TRUE)
 #define USEC_PER_SEC 1000000
 #define NSEC_PER_USEC 1000
@@ -72,10 +70,8 @@ typedef struct {
 // variables
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
-int task_priorities[NUM_THREADS] = {0,SERVO_PRIO,EXTERNAL_PRIO,ENCRYPT_DECRYPT_PRIO,KEYGEN_PRIO,UART_PRIO,TERMINAL_PRIO};
-sentenceLinkedList_t *addHead, *encryptHead, *sendHead; 
-uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
-uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
+int task_priorities[NUM_THREADS] = {0,SERVO_PRIO};
+uint8_t servoPosition[32*8];
 #if (RPI_TYPE == TYPE_RECEIVOR)
 uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 #endif
@@ -83,11 +79,6 @@ uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 
 // function prototypes
 void *Service_1_Servos(void *threadp);
-void *Service_2_Periferal(void *threadp);
-void *Service_3_Encrypt(void *threadp);
-void *Service_4_Keygen(void *threadp);
-void *Service_5_UART(void *threadp);
-void *Service_6_Terminal(void *threadp);
 
 void main(void)
 {
@@ -107,13 +98,11 @@ void main(void)
     // logging
     struct timespec start_time;
 
-    printf("Initializing BB84 Project\n");
+    printf("Servo test initalizaion\n");
     clock_gettime(CLOCK_MONOTONIC,&start_time); // start_time->tv_sec, start_time->tv_nsec
-    syslog(LOG_INFO, "Initalization start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
+    syslog(LOG_INFO, "Servo test initalization start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
 
     // initalizing other files
-    encryption_init();
-    sentenceLL_init(&addHead, &encryptHead, &sendHead);
     servo_init();
 
     // configuring the main thread
@@ -138,9 +127,7 @@ void main(void)
         threadParams[i].threadIdx=i;
 
         // task semaphor initalization
-        if(i<NUM_THREADS-1){
-            if(sem_init (&task_sems[i], 0, 0)) { printf ("Failed to initialize semaphore number %d\n",i); exit (-1); }
-        }
+        if(sem_init (&task_sems[i], 0, 0)) { printf ("Failed to initialize semaphore number %d\n",i); exit (-1); }
     }
 
     // assigning functions to each thread, hard to do this in loop
@@ -154,8 +141,8 @@ void main(void)
     // thread creation
     printf("pthread created: ");
 
-    rc=pthread_create(&threads[1],&rt_sched_attr[1],Service_1, (void *)&(threadParams[1]));
-    if(rc < 0)  { perror("\nError creating service 1");}
+    rc=pthread_create(&threads[1],&rt_sched_attr[1],Service_1_Servos, (void *)&(threadParams[1]));
+    if(rc < 0)  { perror("\nError creating servo thread");}
     else        {printf("\tS1");}
  
     // Finding WCETs
@@ -171,14 +158,19 @@ void main(void)
         print_WCETs();
     #endif
 
+    printf("\n\r");
+    // releasing service semaphores
+    sem_post(&task_sems[1]);
+
     // joining threads and clearing semaphors
     for(uint8_t i=1;i<NUM_THREADS;i++){
-        abort_service[i] = TRUE;
         sem_post(&task_sems[i]);
         pthread_join(threads[i], NULL);
         sem_destroy(&task_sems[i]);
     }
-    encryption_destroy();
+    for(uint8_t i = 0; i < NUM_RUN_SERVO; i++){
+        printf("Servo Position %d: %d\n\r",i,servoPosition[i]);
+    }
     printf("\nEnd Program\n");
     return;
 }
@@ -189,98 +181,22 @@ void *Service_1_Servos(void *threadp)
 {
     uint16_t servoMoveCount = 0;
     printf("Servo service started\t");
-
-    while(!abort_service[1])
+    while(abort_service[1]==0)
     {
+        printf("servos waiting\n\r");
         sem_wait(&task_sems[1]);
-        servoPosition[servoMoveCount] = servo_set_angle_random();
-        servoMoveCount++;
-    }
-
-    pthread_exit((void *)0);
-}
-
-// external periferal service TODO must fix modify change to do
-void *Service_2_Periferal(void *threadp) 
-{
-    printf("external periferal service started\t");
-
-    while(!abort_service[2])
-    {
-        sem_wait(&task_sems[2]);
-    }
-
-    pthread_exit((void *)0);
-}
-
-// Encryption service
-void *Service_3_Encrypt(void *threadp) 
-{
-    printf("Encryption service started\t");
-
-    while(!abort_service[3])
-    {
-        sem_wait(&task_sems[3]);
-        // if we have any data to encrypt
-        while(sentenceLL_getNumSentencesToEncrypt()!=0){
-            // create a new nonce
-            encryption_updateNonce();
-            // encrypt the data where we need to
-            encryption_encryptData(encryptHead.sentence, encryptHead.numCharacters);
-            // say that we have encrypted the data
-            sentenceLL_encryptedSentence(&encryptHead,encryption_getNonceAddress());
+        for(uint8_t i = 0; i < NUM_RUN_SERVO; i++){
+            servoPosition[servoMoveCount] = servo_set_angle_random();
+            printf("%d: Moved servo to %d\n\r",i,servoPosition[servoMoveCount]);
+            servoMoveCount++;
+            sleep(1);
         }
+        abort_service[1]=TRUE;
     }
+    printf("servos ending\n\r");
 
     pthread_exit((void *)0);
 }
-
-// keygen service
-void *Service_4_Keygen(void *threadp) 
-{
-    printf("Keygen service started\t");
-
-    while(!abort_service[4])
-    {
-        sem_wait(&task_sems[4]);
-        // function changes based on whether we are the sender or receiver pi
-        #if (RPI_TYPE == TYPE_SENDER)
-        keygen_sender(servoPosition,communicatedServoBasis);
-        #else
-        keygen_receiver(sensedData,servoPosition,communicatedServoBasis);
-        #endif
-    }
-
-    pthread_exit((void *)0);
-}
-
-// UART service TODO must fix modify change to do
-void *Service_5_UART(void *threadp) 
-{
-    printf("UART service started\t");
-
-    while(!abort_service[5])
-    {
-        sem_wait(&task_sems[5]);
-        
-    }
-
-    pthread_exit((void *)0);
-}
-
-// terminal service TODO must fix modify change to do
-void *Service_6_Terminal(void *threadp){
-    printf("Terminal service started\t");
-
-    while(!abort_service[6])
-    {
-        sem_wait(&task_sems[6]);
-        
-    }
-
-    pthread_exit((void *)0);
-}
-
 
 #if (FINDING_WCET == TRUE)
 // finds WCETs of each task individually

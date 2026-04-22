@@ -4,6 +4,8 @@ static const uint8_t position_arr[NUM_POSITIONS] = {SERVO_ANGLE_0, SERVO_ANGLE_4
 
 void servo_init(void){
     if (wiringPiSetup() == -1) {
+        perror("wiring Pi setup error!");
+        return;
         // Handle error
     }
 

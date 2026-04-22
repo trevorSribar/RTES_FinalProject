@@ -38,3 +38,6 @@ uint16_t sentenceLL_getNumSentencesToEncrypt();
 
 // getter for the number of senteces we have to send
 uint16_t sentenceLL_getNumSentencesToSend();
+
+// frees all memory related to the linked list
+void sentenceLL_destroy(sentenceLinkedList_t **sendHead);

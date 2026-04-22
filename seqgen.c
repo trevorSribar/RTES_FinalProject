@@ -179,6 +179,7 @@ void main(void)
         sem_destroy(&task_sems[i]);
     }
     encryption_destroy();
+    sentenceLL_destroy(&sendHead);
     printf("\nEnd Program\n");
     return;
 }

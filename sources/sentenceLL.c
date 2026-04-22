@@ -100,3 +100,12 @@ uint16_t sentenceLL_getNumSentencesToEncrypt(){
 uint16_t sentenceLL_getNumSentencesToSend(){
     return numSentencesToSend;
 }
+
+// frees all memory related to the linked list
+void sentenceLL_destroy(sentenceLinkedList_t **sendHead){
+    while(*sendHead!=NULL){
+        sentenceLinkedList_t *temp = (*sendHead)->next;
+        free(*sendHead);
+        *sendHead = temp;
+    }
+}

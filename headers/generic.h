@@ -7,4 +7,4 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/sysinfo.h>
-#include <wiringPi.h> // I keep on having to comment this one out in order to test in WSL
+#include <wiringPi.h>

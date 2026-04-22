@@ -2,9 +2,9 @@
 
 static int sentence_length = 0;
 static char input_buffer[SENTENCELL_SENTENCE_SIZE];
-static sentenceLinkedList_t *head = NULL;
+static sentenceLinkedList_t **head = NULL;
 
-void terminal_init(sentenceLinkedList_t *linkedhead)
+void terminal_init(sentenceLinkedList_t **linkedhead)
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
     head = linkedhead;
@@ -12,14 +12,7 @@ void terminal_init(sentenceLinkedList_t *linkedhead)
 
 int terminal_read_char()
 {
-    int value;
-
-	if (out_char == NULL)
-	{
-		return -1;
-	}
-
-	value = getchar();
+    int value = getchar();
 	if (value == EOF)
 	{
 		return -1;

@@ -16,6 +16,7 @@
 
 #include "ads1x1x.h"
 
+int fd;
 
 
 /**************************************************************************/
@@ -25,11 +26,7 @@
 /**************************************************************************/
 void ADS1x1x_write_register(uint8_t i2c_address, uint8_t reg, uint16_t value)
 {
-  ADS1x1x_i2c_start_write(i2c_address);
-  ADS1x1x_i2c_write(reg);
-  ADS1x1x_i2c_write((uint8_t)(value>>8));
-  ADS1x1x_i2c_write((uint8_t)(value&0xff));
-  ADS1x1x_i2c_stop();
+  wiringPiI2CWriteReg16(fd, reg, value);
 }
 
 /**************************************************************************/
@@ -39,14 +36,7 @@ void ADS1x1x_write_register(uint8_t i2c_address, uint8_t reg, uint16_t value)
 /**************************************************************************/
 uint16_t ADS1x1x_read_register(uint8_t i2c_address, uint8_t reg)
 {
-  uint16_t result = 0;
-  ADS1x1x_i2c_start_write(i2c_address);
-  ADS1x1x_i2c_write(reg);
-  ADS1x1x_i2c_stop();
-  ADS1x1x_i2c_start_read(i2c_address,2);
-  result = ADS1x1x_i2c_read() << 8;
-  result |= ADS1x1x_i2c_read();
-  ADS1x1x_i2c_stop();
+  uint16_t result = wiringPiI2CReadReg16(fd, reg);
   return result;
 }
 
@@ -88,6 +78,8 @@ uint8_t ADS1x1x_init(ADS1x1x_config_t *p_config, ADS1x1x_chip_t chip, uint8_t i2
     ADS1x1x_set_comparator_queue(p_config,COMPARATOR_QUEUE_NONE);
     
     result = 1;
+
+    fd = wiringPiI2CSetup(i2c_address);
   }
 
   return result;

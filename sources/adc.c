@@ -30,3 +30,13 @@ uint16_t read_ads1115(void)
 {
     return (uint16_t)adc_node->analogRead(adc_node, 0);
 }
+
+int read_calibrated(void)
+{
+    return adc_node->analogRead(adc_node, 0) - calibration; 
+}
+
+int get_calibration(void)
+{
+    return calibration;
+}

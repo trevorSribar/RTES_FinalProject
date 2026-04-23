@@ -54,7 +54,7 @@
 #define NS_PER_USEC             1000
 #define NS_PER_MS               1000000
 #define NS_PER_SEC              (NS_PER_MS * 1000)
-#define SERVO_MOVE_TIME         (425*NS_PER_MS)
+#define SERVO_MOVE_TIME         (450*NS_PER_MS)
 #define HALF_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/2)
 #define TIMER_RELATIVE 0
 void echo_UART();

@@ -25,6 +25,11 @@ int get_laser_state(void)
     return laser_state;
 }
 
+int get_laser_state_gpio(void)
+{
+    return digitalRead(17);
+}
+
 void laser_on(void)
 {
     laser_state = 1;

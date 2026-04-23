@@ -69,6 +69,7 @@
 #define TIMER_RELATIVE 0
 uint32_t WCET_task[NUM_THREADS] = {0};
 void print_WCETs();
+void echo_UART();
 void *Service_WCET(void *);
 static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime);
 #endif
@@ -597,5 +598,7 @@ void echo_UART()
         sentenceToReceive = uart_receive();
     }
     uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
+
+    #endif
 }
 #endif // (FINDING_WCET == TRUE)

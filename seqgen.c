@@ -62,7 +62,7 @@
 #if (FINDING_WCET == TRUE)
 #define USEC_PER_SEC 1000000
 #define NSEC_PER_USEC 1000
-#define NUM_TIMES_TEST 10000 // number of times run WCET for each function
+#define NUM_TIMES_TEST 250 // number of times run WCET for each function
 #define PRINT 0
 #define LOG 1
 #define FIND_MODE PRINT

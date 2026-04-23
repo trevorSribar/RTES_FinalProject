@@ -59,6 +59,7 @@
 #define TIMER_RELATIVE 0
 
 // added code for finding WCET
+void echo_UART();
 #define FINDING_WCET FALSE
 #if (FINDING_WCET == TRUE)
 #define USEC_PER_SEC 1000000
@@ -69,7 +70,6 @@
 #define FIND_MODE PRINT
 uint32_t WCET_task[NUM_THREADS] = {0};
 void print_WCETs();
-void echo_UART();
 void *Service_WCET(void *);
 static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime);
 #endif

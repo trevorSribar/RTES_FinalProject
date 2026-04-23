@@ -66,6 +66,7 @@
 #define PRINT 0
 #define LOG 1
 #define FIND_MODE PRINT
+#define TIMER_RELATIVE 0
 uint32_t WCET_task[NUM_THREADS] = {0};
 void print_WCETs();
 void *Service_WCET(void *);
@@ -336,7 +337,7 @@ void *Service_2_Periferal(void *)
         }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &(struct timespec){.tv_sec = 0, .tv_nsec = LASER_TIME_ON*NS_PER_USEC}, NULL);
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_RELATIVE, &(struct timespec){.tv_sec = 0, .tv_nsec = LASER_TIME_ON*NS_PER_USEC}, NULL);
         laser_off();
         #else
         while(get_laser_state_gpio==0);

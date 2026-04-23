@@ -61,7 +61,7 @@ void uart_send(char *s, int s_len, int s_type)
 
 char *uart_receive()
 {
-  if (!serialDataAvail(serialPort) || dataFlag == 0)
+  if (!serialDataAvail(serialPort) && dataFlag == 0)
   {
     return NULL;
   }

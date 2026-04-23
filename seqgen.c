@@ -573,10 +573,12 @@ void echo_UART()
     #if (RPI_TYPE == TYPE_SENDER)
 
     uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
+    printf("UART echo: Sent a\n");
     while (sentenceToReceive == NULL)
     {
         sentenceToReceive = uart_receive();
     }
+    printf("UART echo: received char!\n");
 
     #else
 

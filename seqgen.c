@@ -353,8 +353,13 @@ void *Service_6_Terminal(void){
 
     while(!abort_service[6])
     {
-        sem_wait(&task_sems[6]);
-        
+        #if (RPI_TYPE == TYPE_SENDER)
+        terminal_read_char();
+        #else
+        if(sentenceLL_getNumSentencesToSend()>0){
+            terminal_printDecryptedSentence(&sendHead);
+        }
+        #endif
     }
 
     pthread_exit((void *)0);

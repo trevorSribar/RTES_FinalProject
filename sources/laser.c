@@ -16,11 +16,6 @@ void init_laser_send(void)
 
 void init_laser_receive(void)
 {
-    if (wiringPiSetupGpio() == -1)
-    {
-        perror("Failed to initialize wiringPi");
-        return;
-    }
     pinMode(5, OUTPUT);
     pullUpDnControl(5, PUD_DOWN);
     pinMode(17, INPUT);

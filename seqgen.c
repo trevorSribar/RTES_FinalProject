@@ -248,22 +248,17 @@ void main(void)
         sem_post(&task_sems[4]);
         sem_post(&task_sems[5]);
 
-        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
-        if(startIterationTime.tv_nsec>NS_PER_SEC){
-            startIterationTime.tv_nsec-=NS_PER_SEC;
-            startIterationTime.tv_sec++;
-        }
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+        for(int i =0; i < SERVO_MOVE_DIVISOR; i++){
+            startIterationTime.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
+            if(startIterationTime.tv_nsec>NS_PER_SEC){
+                startIterationTime.tv_nsec-=NS_PER_SEC;
+                startIterationTime.tv_sec++;
+            }
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
 
-        sem_post(&task_sems[3]);
-        sem_post(&task_sems[5]);
-
-        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
-        if(startIterationTime.tv_nsec>NS_PER_SEC){
-            startIterationTime.tv_nsec-=NS_PER_SEC;
-            startIterationTime.tv_sec++;
+            sem_post(&task_sems[3]);
+            sem_post(&task_sems[5]);
         }
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
 
         sem_post(&task_sems[2]);
         sem_wait(&task_sems[0]);

@@ -41,7 +41,7 @@
 
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1
-#define RPI_TYPE TYPE_SENDER
+#define RPI_TYPE TYPE_RECEIVOR
 
 #define NUM_THREADS (6+1)
 #define SERVO_PRIO              (5)
@@ -525,7 +525,7 @@ void *Service_5_UART(void *)
             if(sentenceToReceive!=NULL){
                 i = 0;
                 memcpy(addHead->sentenceNonce, &sentenceToReceive[2], ENCRYPTION_NONCE_LENGTH);
-                sentenceLL_addSentence(&addHead, &(sentenceToReceive[2+ENCRYPTION_NONCE_LENGTH]), sentenceToReceive[1]);
+                sentenceLL_addSentence(&addHead, &(sentenceToReceive[2+ENCRYPTION_NONCE_LENGTH]), sentenceToReceive[1]-ENCRYPTION_NONCE_LENGTH);
             }
         }
         #endif

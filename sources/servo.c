@@ -5,7 +5,7 @@ static const uint32_t position_arr[NUM_POSITIONS] = {SERVO_ANGLE_0, SERVO_ANGLE_
 void servo_init(void){
     pinMode(SERVO_PIN, PWM_OUTPUT);
     pwmSetMode(PWM_MODE_MS);
-    pwmSetClock(PWM_CLK_UART_DIV);
+    pwmSetClock(PWM_CLK_DIV); 
     pwmSetRange(1000); 
 
 }

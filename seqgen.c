@@ -19,11 +19,11 @@
 
 // file includes
 #include "keygen.h"
-#include "sentenceLL.h"
 #include "servo.h"
 #include "terminal.h"
 #include "uart.h"
 #include "adc.h"
+#include "laser.h"
 
 // includes for tasks, schedueling, and logging
 #include <pthread.h>
@@ -68,7 +68,7 @@
 #define FIND_MODE PRINT
 uint32_t WCET_task[NUM_THREADS] = {0};
 void print_WCETs();
-void *Service_WCET(void *threadp);
+void *Service_WCET(void *);
 static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime);
 #endif
 
@@ -88,12 +88,12 @@ uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 
 
 // function prototypes
-void *Service_1_Servos(void);
-void *Service_2_Periferal(void);
-void *Service_3_Encrypt(void);
-void *Service_4_Keygen(void);
-void *Service_5_UART(void);
-void *Service_6_Terminal(void);
+void *Service_1_Servos(void *);
+void *Service_2_Periferal(void *);
+void *Service_3_Encrypt(void *);
+void *Service_4_Keygen(void *);
+void *Service_5_UART(void *);
+void *Service_6_Terminal(void *);
 
 void main(void)
 {
@@ -119,13 +119,13 @@ void main(void)
     // initalizing other files
     if(encryption_init()==ENCRYPTION_ERROR){
         perror("Encryption init error\n\r");
-        return 1;
+        return;
     }
     sentenceLL_init(&addHead, &encryptHead, &sendHead);
     servo_init();
     if(initialize_uart()!=0){
         perror("UART init error\n\r");
-        return 1;
+        return;
     }
     terminal_init(&addHead);
     keygen_init();
@@ -258,7 +258,7 @@ void main(void)
 
 // services
 // servo service
-void *Service_1_Servos(void) 
+void *Service_1_Servos(void *) 
 {
     uint16_t servoMoveCount = 0;
     printf("Servo service started\t");
@@ -280,7 +280,7 @@ void *Service_1_Servos(void)
 }
 
 // external periferal service modify change needs something
-void *Service_2_Periferal(void) 
+void *Service_2_Periferal(void *) 
 {
     printf("external periferal service started\t");
     uint16_t readData;
@@ -318,7 +318,7 @@ void *Service_2_Periferal(void)
 }
 
 // Encryption service
-void *Service_3_Encrypt(void) 
+void *Service_3_Encrypt(void *) 
 {
     printf("Encryption service started\t");
 
@@ -357,7 +357,7 @@ void *Service_3_Encrypt(void)
 }
 
 // keygen service
-void *Service_4_Keygen(void) 
+void *Service_4_Keygen(void *) 
 {
     uint8_t lastComputedKeygenIndex;
     printf("Keygen service started\t");
@@ -380,7 +380,7 @@ void *Service_4_Keygen(void)
 }
 
 // UART service TODO must fix modify change to do
-void *Service_5_UART(void) 
+void *Service_5_UART(void *) 
 {
     printf("UART service started\t");
     while(!abort_service[5])
@@ -407,9 +407,9 @@ void *Service_5_UART(void)
             keygenIndex += numServoDataToSend;
         }
         while(sentenceLL_getNumSentencesToSend()>0){
-            char sentenceToSend[SENTENCELL_SENTENCE_SIZE];
+            char *sentenceToSend;
             uint8_t length;
-            sentenceLL_getSentence(&sendHead, &sentenceToSend, &length)
+            sentenceLL_getSentence(&sendHead, sentenceToSend, &length);
             uart_send(sentenceToSend, length, UART_SENDER_SENTENCE_ENCRYPTED);
             sentenceLL_removeSentence(&sendHead);
         }
@@ -449,7 +449,7 @@ void *Service_5_UART(void)
 }
 
 // terminal service
-void *Service_6_Terminal(void){
+void *Service_6_Terminal(void *){
     printf("Terminal service started\t");
 
     while(!abort_service[6])
@@ -469,7 +469,7 @@ void *Service_6_Terminal(void){
 
 #if (FINDING_WCET == TRUE)
 // finds WCETs of each task individually
-void *Service_WCET(void){
+void *Service_WCET(void *){
     printf("WCET finder started\n");
     syslog(LOG_INFO,("WCET finder started\n"));
     struct timespec startTime;

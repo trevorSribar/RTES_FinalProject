@@ -43,4 +43,4 @@ uint16_t sentenceLL_getNumSentencesToSend();
 void sentenceLL_destroy(sentenceLinkedList_t **sendHead);
 
 // getter for the sentence array and its length
-void sentenceLL_getSentence(sentenceLinkedList_t **tail, char *sentence, uint8_t *length, char *nonce);
+void sentenceLL_getSentence(sentenceLinkedList_t **tail, char *sentence, uint8_t *length);

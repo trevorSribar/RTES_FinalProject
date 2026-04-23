@@ -18,6 +18,3 @@ void servo_init(void);
 
 // sets the servo angle to the specified position (0, 45, 90, or 135 degrees)
 void servo_set_angle(uint8_t angle);
-
-// sets the servo to a random position, and returns the position it was set to
-uint8_t servo_set_angle_random(void);

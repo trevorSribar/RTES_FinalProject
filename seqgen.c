@@ -147,6 +147,7 @@ void main(void)
     #endif
 
     // remove this, stuff added to test send/receive
+    echo_UART();
     uint8_t length = 36;
     #if (RPI_TYPE == TYPE_SENDER)
     char sentence[36] = ("This is a sentence that we will send");

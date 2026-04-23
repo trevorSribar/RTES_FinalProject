@@ -204,7 +204,9 @@ void main(void)
     struct timespec startIterationTime;
     uint32_t numNanosecondsSleep;
     printf("\nStarting scheduler\n");
-    while(1){
+    #if (FINDING_WCET == TRUE)
+    printf("Finding WCETs, scheduler %u times\n", NUM_TIMES_TEST);
+    for(int i = 0; i<NUM_TIMES_TEST; i++){
         clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
         sem_post(&task_sems[1]);
         sem_post(&task_sems[3]);
@@ -231,6 +233,36 @@ void main(void)
         sem_post(&task_sems[2]);
         sem_wait(&task_sems[0]);
     }
+    print_WCETs();
+    #else
+    for(;;){
+        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
+        sem_post(&task_sems[1]);
+        sem_post(&task_sems[3]);
+        sem_post(&task_sems[4]);
+        sem_post(&task_sems[5]);
+
+        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
+        if(startIterationTime.tv_nsec>NS_PER_SEC){
+            startIterationTime.tv_nsec-=NS_PER_SEC;
+            startIterationTime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+
+        sem_post(&task_sems[3]);
+        sem_post(&task_sems[5]);
+
+        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
+        if(startIterationTime.tv_nsec>NS_PER_SEC){
+            startIterationTime.tv_nsec-=NS_PER_SEC;
+            startIterationTime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+
+        sem_post(&task_sems[2]);
+        sem_wait(&task_sems[0]);
+    }
+    #endif
 
     // joining threads and clearing semaphors
     for(uint8_t i=1;i<NUM_THREADS;i++){
@@ -241,7 +273,6 @@ void main(void)
     }
     encryption_destroy();
     sentenceLL_destroy(&sendHead);
-    print_WCETs();
     printf("\nEnd Program\n");
     return;
 }

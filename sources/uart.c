@@ -5,8 +5,6 @@
 #include "uart.h"
 
 int programFlag = 1;
-int dataFlag = 0;
-char currentDataType = 0x14;
 int serialPort;
 char buffer[BUFFER_SIZE + 2];
 
@@ -29,32 +27,19 @@ void uart_send(char *s, int s_len, int s_type)
     perror("string length is too large!");
     return;
   }
-  
-  while (dataFlag)
-  {
-    if (serialDataAvail(serialPort))
-    {
-      int ack = serialGetchar(serialPort); // consume one ACK/status byte
-#if (UART_TRACE == 1)
-      printf("UART TRACE TX ACK byte=0x%02X\n", (unsigned char)ack);
-#endif
-      dataFlag = 0;
-      currentDataType = 0x14;
-    }
-  }
+
   if (s_type > 2 || s_type < 0)
   {
     return;
   }
 
-  currentDataType = 0x11 + s_type; //s_type should only be of values 0, 1, or 2 to represent unencrypted, encrypted, and sender servo data
+  char dataType = 0x11 + s_type; //s_type should only be of values 0, 1, or 2 to represent unencrypted, encrypted, and sender servo data
 #if (UART_TRACE == 1)
-  printf("UART TRACE TX header=0x%02X len=%d\n", (unsigned char)currentDataType, s_len);
+  printf("UART TRACE TX header=0x%02X len=%d\n", (unsigned char)dataType, s_len);
   uart_trace_payload("TX", s, s_len);
 #endif
-  serialPutchar(serialPort, currentDataType);
+  serialPutchar(serialPort, dataType);
   serialPutchar(serialPort, (char)s_len); //cast s_len to char, string length can never be greater than 255 anyway
-  dataFlag = 1;
 
   for (int i = 0; i < s_len; i++)
   {
@@ -82,14 +67,12 @@ char *uart_receive()
     case 0x11: //unencrypted string
     case 0x12: //encrypted string
     case 0x13: //servo data
-      currentDataType = buffer[0];
       break;
     default: //in any other situation don't receive string - perform a serial flush
 #if (UART_TRACE == 1)
       printf("UART TRACE RX invalid header=0x%02X, flushing\n", (unsigned char)buffer[0]);
 #endif
       serialFlush(serialPort);
-      dataFlag = 0;
       return NULL;
   }
 
@@ -106,8 +89,6 @@ char *uart_receive()
     printf("UART TRACE RX len out of range, flushing\n");
 #endif
     serialFlush(serialPort);
-    currentDataType = 0x14;
-    dataFlag = 0;
     return NULL;
   }
   int dataCount = strLen;
@@ -122,17 +103,13 @@ char *uart_receive()
     if (dataCount == 0)
     {
       serialFlush(serialPort);
-      dataFlag = 0;
       break;
     }
   }
 
-  currentDataType = 0x14;
 #if (UART_TRACE == 1)
   uart_trace_payload("RX", &buffer[2], strLen);
-  printf("UART TRACE RX ACK byte=0x%02X\n", (unsigned char)currentDataType);
 #endif
-  serialPutchar(serialPort, currentDataType); //ack to sender from receiver
 
   return buffer;
 }

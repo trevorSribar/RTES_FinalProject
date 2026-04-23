@@ -10,9 +10,9 @@
 
 #define NUM_POSITIONS 4
 #define SERVO_ANGLE_0 50
-#define SERVO_ANGLE_45 75
-#define SERVO_ANGLE_90 100
-#define SERVO_ANGLE_135 125
+#define SERVO_ANGLE_45 63
+#define SERVO_ANGLE_90 75
+#define SERVO_ANGLE_135 88
 
 //initializes the servo motor pwm output
 void servo_init(void);

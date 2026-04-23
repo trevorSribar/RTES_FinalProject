@@ -18,7 +18,7 @@ int terminal_read_char()
 		return -1;
 	}
 
-    if(value == '\n')
+    if(value == '\n' || value == '\r')
     {
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;

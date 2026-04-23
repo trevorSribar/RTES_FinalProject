@@ -22,3 +22,9 @@ void keygen_sender(uint8_t *sentServoData, uint8_t *measuredServoBasis);
 
 // generates a key based on what data was sensed, what bases were used, and what bases were sent
 void keygen_receiver(uint8_t *dataSensed, uint8_t *measuredServoData, uint8_t *reveivedServoData);
+
+// goes through the process of generating a key starting at some address and ending at another address
+void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, uint8_t startAddress, uint8_t endAddress);
+
+// goes through the process of generating a key starting ast some address and ending at another address
+void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint8_t *reveivedServoData, uint8_t startAddress, uint8_t endAddress);

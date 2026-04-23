@@ -18,10 +18,12 @@
 #define _GNU_SOURCE
 
 // file includes
-#include "generic.h"
 #include "keygen.h"
 #include "sentenceLL.h"
 #include "servo.h"
+#include "terminal.h"
+#include "uart.h"
+#include "adc.h"
 
 // includes for tasks, schedueling, and logging
 #include <pthread.h>
@@ -36,12 +38,14 @@
 
 // defines
 #define DELAY_SCHEDLUER_MSEC (struct timespec) {0,333333} // delay for 333.333 usec, 3000 Hz
+
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1
 #define RPI_TYPE TYPE_SENDER
+
 #define NUM_THREADS (6+1)
-#define SERVO_PRIO              (6)
-#define EXTERNAL_PRIO           (5)
+#define SERVO_PRIO              (5)
+#define EXTERNAL_PRIO           (6)
 #define ENCRYPT_DECRYPT_PRIO    (4)
 #define KEYGEN_PRIO             (3)
 #define UART_PRIO               (2)
@@ -63,12 +67,6 @@ void *Service_WCET(void *threadp);
 static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime);
 #endif
 
-// structs
-typedef struct {
-    int threadIdx;
-    unsigned long long sequencePeriods;
-} threadParams_t;
-
 // variables
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
@@ -76,23 +74,23 @@ int task_priorities[NUM_THREADS] = {0,SERVO_PRIO,EXTERNAL_PRIO,ENCRYPT_DECRYPT_P
 sentenceLinkedList_t *addHead, *encryptHead, *sendHead; 
 uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
 uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
+uint8_t generateNewKey = FALSE;
 #if (RPI_TYPE == TYPE_RECEIVOR)
 uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 #endif
 
 
 // function prototypes
-void *Service_1_Servos(void *threadp);
-void *Service_2_Periferal(void *threadp);
-void *Service_3_Encrypt(void *threadp);
-void *Service_4_Keygen(void *threadp);
-void *Service_5_UART(void *threadp);
-void *Service_6_Terminal(void *threadp);
+void *Service_1_Servos(void);
+void *Service_2_Periferal(void);
+void *Service_3_Encrypt(void);
+void *Service_4_Keygen(void);
+void *Service_5_UART(void);
+void *Service_6_Terminal(void);
 
 void main(void)
 {
     // Thread parameters
-    threadParams_t threadParams[NUM_THREADS];       // thread info for paramaterizing threads
     pthread_t threads[NUM_THREADS];                 // thread info for creating threads  
     pthread_attr_t rt_sched_attr[NUM_THREADS];
     struct sched_param rt_param[NUM_THREADS];
@@ -112,9 +110,24 @@ void main(void)
     syslog(LOG_INFO, "Initalization start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
 
     // initalizing other files
-    encryption_init();
+    if(encryption_init()==ENCRYPTION_ERROR){
+        perror("Encryption init error\n\r");
+        return 1;
+    }
     sentenceLL_init(&addHead, &encryptHead, &sendHead);
     servo_init();
+    if(initialize_uart()!=0){
+        perror("UART init error\n\r");
+        return 1;
+    }
+    terminal_init(&addHead);
+    #if (RPI_TYPE == TYPE_SENDER)
+    init_laser_send();
+    #else
+    init_laser_receive();
+    init_ads1115();
+    #endif
+
 
     // configuring the main thread
     mainpid=getpid();
@@ -135,7 +148,6 @@ void main(void)
         rc=pthread_attr_setschedpolicy(&rt_sched_attr[i], SCHED_FIFO);
         rt_param[i].sched_priority=task_priorities[i];
         pthread_attr_setschedparam(&rt_sched_attr[i], &rt_param[i]);
-        threadParams[i].threadIdx=i;
 
         // task semaphor initalization
         if(i<NUM_THREADS-1){
@@ -152,18 +164,38 @@ void main(void)
     //                 );
     
     // thread creation
+    
     printf("pthread created: ");
 
-    rc=pthread_create(&threads[1],&rt_sched_attr[1],Service_1, (void *)&(threadParams[1]));
+    rc=pthread_create(&threads[1],&rt_sched_attr[1],Service_1_Servos, NULL);
     if(rc < 0)  { perror("\nError creating service 1");}
-    else        {printf("\tS1");}
+    else        {printf("S1, ");}
+
+    rc=pthread_create(&threads[2],&rt_sched_attr[2],Service_2_Periferal, NULL);
+    if(rc < 0)  { perror("\nError creating service 2");}
+    else        {printf("S2, ");}
+
+    rc=pthread_create(&threads[3],&rt_sched_attr[3],Service_3_Encrypt, NULL);
+    if(rc < 0)  { perror("\nError creating service 3");}
+    else        {printf("S3, ");}
+
+    rc=pthread_create(&threads[4],&rt_sched_attr[4],Service_4_Keygen, NULL);
+    if(rc < 0)  { perror("\nError creating service 4");}
+    else        {printf("S4, ");}
+    
+    rc=pthread_create(&threads[5],&rt_sched_attr[5],Service_5_UART, NULL);
+    if(rc < 0)  { perror("\nError creating service 5");}
+    else        {printf("S5, ");}
+
+    rc=pthread_create(&threads[6],&rt_sched_attr[6],Service_6_Terminal, NULL);
+    if(rc < 0)  { perror("\nError creating service 6");}
+    else        {printf("S6, ");}
  
     // Finding WCETs
     #if (FINDING_WCET == TRUE)
-        threadParams[0].sequencePeriods = 0;
         rt_param[0].sched_priority = rt_min_prio;
         pthread_attr_setschedparam(&rt_sched_attr[0], &rt_param[0]);
-        rc = pthread_create(&threads[0], &rt_sched_attr[0], Service_WCET, (void *)&(threadParams[0]));
+        rc = pthread_create(&threads[0], &rt_sched_attr[0], Service_WCET, NULL);
         if(rc < 0)  { perror("\nError creating service WCET");}
         else        {printf("\tWCET");}
         pthread_join(threads[0],NULL);
@@ -186,7 +218,7 @@ void main(void)
 
 // services
 // servo service
-void *Service_1_Servos(void *threadp) 
+void *Service_1_Servos(void) 
 {
     uint16_t servoMoveCount = 0;
     printf("Servo service started\t");
@@ -194,6 +226,12 @@ void *Service_1_Servos(void *threadp)
     while(!abort_service[1])
     {
         sem_wait(&task_sems[1]);
+        if(servoMoveCount>ENCRYPTION_KEY_LENGTH*8){
+            if(generateNewKey!=TRUE){
+                continue;
+            }
+            servoMoveCount = 0;
+        }
         servoPosition[servoMoveCount] = servo_set_angle_random();
         servoMoveCount++;
     }
@@ -201,21 +239,28 @@ void *Service_1_Servos(void *threadp)
     pthread_exit((void *)0);
 }
 
-// external periferal service TODO must fix modify change to do
-void *Service_2_Periferal(void *threadp) 
+// external periferal service
+void *Service_2_Periferal(void) 
 {
     printf("external periferal service started\t");
 
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
+        #if (RPI_TYPE == TYPE_SENDER)
+        laser_on();
+        nanosleep(12000);
+        laser_off();
+        #else
+
+        #endif
     }
 
     pthread_exit((void *)0);
 }
 
 // Encryption service
-void *Service_3_Encrypt(void *threadp) 
+void *Service_3_Encrypt(void) 
 {
     printf("Encryption service started\t");
 
@@ -237,7 +282,7 @@ void *Service_3_Encrypt(void *threadp)
 }
 
 // keygen service
-void *Service_4_Keygen(void *threadp) 
+void *Service_4_Keygen(void) 
 {
     printf("Keygen service started\t");
 
@@ -256,7 +301,7 @@ void *Service_4_Keygen(void *threadp)
 }
 
 // UART service TODO must fix modify change to do
-void *Service_5_UART(void *threadp) 
+void *Service_5_UART(void) 
 {
     printf("UART service started\t");
 
@@ -270,7 +315,7 @@ void *Service_5_UART(void *threadp)
 }
 
 // terminal service TODO must fix modify change to do
-void *Service_6_Terminal(void *threadp){
+void *Service_6_Terminal(void){
     printf("Terminal service started\t");
 
     while(!abort_service[6])
@@ -285,12 +330,12 @@ void *Service_6_Terminal(void *threadp){
 
 #if (FINDING_WCET == TRUE)
 // finds WCETs of each task individually
-void *Service_WCET(void *threadp){
+void *Service_WCET(void){
     printf("WCET finder started\n");
     syslog(LOG_INFO,("WCET finder started\n"));
     struct timespec startTime;
     struct timespec endTime;
-    for(int i = 1; i < NUM_TIMES_TEST; i++){
+    for(int i = 0; i < NUM_TIMES_TEST; i++){
         for(int j = 1; j < NUM_THREADS; j++){
             clock_gettime(CLOCK_MONOTONIC,&startTime);
             sem_post(&task_sems[j]);

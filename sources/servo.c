@@ -1,6 +1,6 @@
 #include "servo.h"
 
-static const uint8_t position_arr[NUM_POSITIONS] = {SERVO_ANGLE_0, SERVO_ANGLE_45, SERVO_ANGLE_90, SERVO_ANGLE_135};
+static const uint32_t position_arr[NUM_POSITIONS] = {SERVO_ANGLE_0, SERVO_ANGLE_45, SERVO_ANGLE_90, SERVO_ANGLE_135};
 
 void servo_init(void){
     if (wiringPiSetup() == -1) {

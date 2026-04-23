@@ -1,3 +1,7 @@
+// Interfaces with the ADS1115 ADC on the receiving RPi to gather readings from the photoresistor
+// Kenneth Alcineus
+// 4/18/2026
+
 #include "adc.h"
 
 struct wiringPiNodeStruct *adc_node;

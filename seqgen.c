@@ -552,7 +552,9 @@ void *Service_6_Terminal(void *){
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
         #if (RPI_TYPE == TYPE_SENDER)
-        terminal_read_char();
+        if(terminal_read_char()!=0){
+            perror("Terminal get char error\n\r");
+        }
         #else
         if(sentenceLL_getNumSentencesToSend()>0){
             terminal_print_and_delete_DecryptedSentence(&sendHead);

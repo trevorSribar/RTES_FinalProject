@@ -20,6 +20,10 @@ int terminal_read_char()
 
     if(value == '\n' || value == '\r')
     {
+        if (sentence_length == 0)
+        {
+            return 0;
+        }
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
         return 0;

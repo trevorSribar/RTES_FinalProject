@@ -73,17 +73,16 @@ char *uart_receive()
       case 0x11: //unencrypted string
       case 0x12: //encrypted string
       case 0x13: //servo data
-        if (serialDataAvail(serialPort))
-        {
-          currentDataType = buffer[0];
-          break;
-        }
+        currentDataType = buffer[0];
+        break;
       default: //in any other situation don't receive string - perform a serial flush
         serialFlush(serialPort);
         dataFlag = 0;
-        return buffer;
+        return NULL;
     }
   }
+
+  while (!serialDataAvail(serialPort)) {}
 
   buffer[1] = serialGetchar(serialPort);
   int strLen = (int)buffer[1];

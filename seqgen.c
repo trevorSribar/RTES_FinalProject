@@ -478,7 +478,7 @@ void *Service_5_UART(void *)
                 servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
             }
             // send the current servo data
-            uart_send(servoPositionBasisesToSend, numServoDataToSend, UART_SENDER_SERVO_DATA);
+            uart_send(servoPositionBasisesToSend, numServoDataToSend*8, UART_SENDER_SERVO_DATA);
             // receive the current servo data
             char *receiverServoBasisData;
             receiverServoBasisData = uart_receive();
@@ -513,7 +513,7 @@ void *Service_5_UART(void *)
                 receiverServoBasisData = uart_receive();
             }
             // send the current servo data
-            uart_send(servoPositionBasisesToSend, numServoDataToSend, UART_SENDER_SERVO_DATA);
+            uart_send(servoPositionBasisesToSend, numServoDataToSend*8, UART_SENDER_SERVO_DATA);
             for(uint16_t i = 0; i < numServoDataToSend*8; i++){
                 communicatedServoBasis[i + 8 * keygenIndex] = receiverServoBasisData[i+2];
             }

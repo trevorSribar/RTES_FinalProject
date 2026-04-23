@@ -1,3 +1,7 @@
+// Header to expose the laser toggle and state read functions
+// Kenneth Alcineus
+// 4/23/2026
+
 #include "generic.h"
 
 #define LASER_TIME_ON 3500

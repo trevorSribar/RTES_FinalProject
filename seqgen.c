@@ -556,28 +556,6 @@ void *Service_6_Terminal(void *){
     pthread_exit((void *)0);
 }
 
-
-#if (FINDING_WCET == TRUE)
-// gets the epalsied time and adds it to the WCET if it is the greatest time that has elapsed for that function
-static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime){
-    uint32_t completionTimeS_inUS = (completionTime.tv_sec - releaseTime.tv_sec)*USEC_PER_SEC;
-    uint32_t completionTimeUS = completionTimeS_inUS + (completionTime.tv_nsec - releaseTime.tv_nsec)/NSEC_PER_USEC;
-    if(completionTimeUS > WCET_task[task]){
-        WCET_task[task] = completionTimeUS;
-    }
-}
-
-// prints the WCETs
-void print_WCETs(){
-    for(int i = 0; i < NUM_THREADS;i++){
-        #if (FIND_MODE == LOG)
-        syslog(LOG_INFO,"WCET Task %u:\t%u\n",i,WCET_task[i]);
-        #else
-        printf("WCET Task %u:\t%u\n",i,WCET_task[i]);
-        #endif
-    }
-}
-
 // ensure that the RPis are echoing characters between each other over UART
 void echo_UART()
 {
@@ -603,5 +581,26 @@ void echo_UART()
     uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
 
     #endif
+}
+
+#if (FINDING_WCET == TRUE)
+// gets the epalsied time and adds it to the WCET if it is the greatest time that has elapsed for that function
+static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime){
+    uint32_t completionTimeS_inUS = (completionTime.tv_sec - releaseTime.tv_sec)*USEC_PER_SEC;
+    uint32_t completionTimeUS = completionTimeS_inUS + (completionTime.tv_nsec - releaseTime.tv_nsec)/NSEC_PER_USEC;
+    if(completionTimeUS > WCET_task[task]){
+        WCET_task[task] = completionTimeUS;
+    }
+}
+
+// prints the WCETs
+void print_WCETs(){
+    for(int i = 0; i < NUM_THREADS;i++){
+        #if (FIND_MODE == LOG)
+        syslog(LOG_INFO,"WCET Task %u:\t%u\n",i,WCET_task[i]);
+        #else
+        printf("WCET Task %u:\t%u\n",i,WCET_task[i]);
+        #endif
+    }
 }
 #endif // (FINDING_WCET == TRUE)

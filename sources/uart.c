@@ -1,75 +1,98 @@
 #include "uart.h"
 
 int programFlag = 1;
+int dataFlag = 0;
+int dataCount = 0;
+char currentDataType = 0x14;
 int serialPort;
 char buffer[BUFFER_SIZE + 2];
 
 void uart_send(char *s, int s_len, int s_type)
 {
+  while (dataFlag)
+  {
+    if (serialDataAvail(serialPort) && dataCount == 0)
+    {
+      serialGetchar(serialPort);
+      dataFlag = 0;
+    }
+  }
   if (s_len > BUFFER_SIZE)
   {
     s_len = BUFFER_SIZE;
   }
+  if (s_type > 2 || s_type < 0)
+  {
+    return;
+  }
 
-  serialPutchar(serialPort, (0x11 + s_type)); //s_type should only be of values 0, 1, or 2 to take advantage of device control characters
+  char currentDataType = 0x11 + s_type; //s_type should only be of values 0, 1, or 2 to take advantage of device control characters
+  serialPutchar(serialPort, currentDataType);
+  serialPutchar(serialPort, (char)s_len); //cast s_len to char, string length can never be greater than 256 anyway
+  dataFlag = 1;
 
   for (int i = 0; i < s_len; i++)
   {
     //may need to revisit to make this real-time friendly to account so that services can run between individual character sends
     serialPutchar(serialPort, s[i]);
+    dataCount++;
   }
-  
+
   serialPutchar(serialPort, 0x14); // DC4 will signify string termination in place of NUL
 }
 
 char *uart_receive()
 {
-  memset(buffer, '\0', sizeof(buffer));
-
-  if (!serialDataAvail(serialPort))
+  if (!serialDataAvail(serialPort) || dataFlag == 0)
   {
     return buffer;
   }
 
+  memset(buffer, '\0', sizeof(buffer));
+
   buffer[0] = serialGetchar(serialPort);
 
-  switch (buffer[0])
+  if (dataFlag && currentDataType == 0x14)
   {
-    case 0x11: //unencrypted string
-      break;
-    case 0x12: //encrypted string
-      break;
-    case 0x13: //laser toggle signal
-      break;
-    default: //in any other situation don't receive string
-      return buffer;
+    switch (buffer[0])
+    {
+      case 0x11: //unencrypted string
+      case 0x12: //encrypted string
+      case 0x13: //servo data
+        if (serialDataAvail(serialPort))
+        {
+          currentDataType = buffer[0];
+          buffer[1] = (char)serialGetchar(serialPort);
+          break;
+        }
+      default: //in any other situation don't receive string - perform a serial flush
+        serialFlush(serialPort);
+        dataCount = 0;
+        dataFlag = 0;
+        return buffer;
+    }
   }
 
-  for (int i = 1; i < BUFFER_SIZE + 1; i++)
+  int strLen = (int)buffer[1];
+
+  for (int i = strLen - dataCount + 2; i < strLen + 2; i++)
   {
-    //may need to revisit to make this real-time friendly. for now, adjust polls in uart.h
-    int data_polls = 0;
-    while (!serialDataAvail(serialPort))
-    {
-      data_polls++;
-      if (data_polls >= MAX_POLLS)
-      {
-        return buffer;
-      }
-    }
+    while (!serialDataAvail(serialPort)) {}
     
     buffer[i] = serialGetchar(serialPort);
+    dataCount--;
 
-    if (buffer[i] == 0x14)
+    if (dataCount == 0)
     {
-      return buffer;
+      serialFlush(serialPort);
+      dataCount = 0;
+      dataFlag = 0;
+      break;
     }
   }
 
-  if (buffer[BUFFER_SIZE + 1] != 0x14) //possible error condition: end of buffer reached but DC4 termination character not found
-  {
-    return NULL;
-  }
+  currentDataType = 0x14;
+  serialPutchar(serialPort, currentDataType); //ack to sender from receiver
 
   return buffer;
 }

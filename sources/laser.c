@@ -1,3 +1,7 @@
+// Toggles the laser with the GPIO pin 5 and allows the state to be read with the GPIO pin 17
+// Kenneth Alcineus
+// 4/23/2026
+
 #include "laser.h"
 
 int laser_state = 0;

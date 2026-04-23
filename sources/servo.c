@@ -19,3 +19,10 @@ void servo_init(void){
 void servo_set_angle(uint8_t position){
     pwmWrite(SERVO_PIN, position_arr[position]);
 }
+
+// sets the servo to a random angle from the position array
+uint8_t servo_set_angle_random(){
+    uint8_t randomPos = rand()%NUM_POSITIONS;
+    pwmWrite(SERVO_PIN, position_arr[randomPos]);
+    return randomPos;
+}

@@ -20,4 +20,4 @@ void servo_init(void);
 void servo_set_angle(uint8_t angle);
 
 // sets the servo to a random angle from the position array
-void servo_set_angle(uint8_t position);
+uint8_t servo_set_angle_random();

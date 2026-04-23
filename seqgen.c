@@ -80,7 +80,6 @@ uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
 uint8_t generateNewKey = FALSE;
 #if (RPI_TYPE == TYPE_RECEIVOR)
 uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
-struct timespec laserOff;
 #endif
 
 
@@ -213,7 +212,6 @@ void main(void)
     struct timespec endTime;
     uint32_t numNanosecondsSleep;
     while(1){
-        #if (RPI_TYPE == TYPE_SENDER)
         clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
         sem_post(&task_sems[1]);
         sem_post(&task_sems[3]);
@@ -227,8 +225,7 @@ void main(void)
         }
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
         sem_post(&task_sems[2]);
-
-        #endif
+        sem_wait(&task_sems[0]);
     }
 
     // joining threads and clearing semaphors
@@ -296,9 +293,9 @@ void *Service_2_Periferal(void)
             sensedData[numRun] = 0;
         }
         while(get_laser_state_gpio==1);
-        clock_gettime(CLOCK_MONOTONIC,&laserOff);
         #endif
         numRun++;
+        sem_post(&task_sems[0]);
     }
 
     pthread_exit((void *)0);

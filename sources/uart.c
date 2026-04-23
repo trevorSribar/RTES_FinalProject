@@ -20,7 +20,7 @@ void uart_send(char *s, int s_len, int s_type)
   
   while (dataFlag)
   {
-    if (serialDataAvail(serialPort) && dataCount == 0)
+    if (serialDataAvail(serialPort))
     {
       if (currentDataType == 0x13) //special scenario where receiver sends back servo data
       {

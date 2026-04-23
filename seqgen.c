@@ -292,7 +292,7 @@ void *Service_1_Servos(void *)
 {
     uint16_t servoMoveCount = 0;
     printf("Servo service started\t");
-    #if (FINDING_WCET == TRUE)
+    #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
 

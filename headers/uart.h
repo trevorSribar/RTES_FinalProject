@@ -1,10 +1,8 @@
 #include "generic.h"
-#include <syslog.h>
 #include <wiringSerial.h>
 
 #define BAUD_RATE 115200
-#define BUFFER_SIZE 100
-#define MAX_POLLS 500
+#define BUFFER_SIZE 256
 #define TEST_SET 1
 
 //send string s over UART over a length of s_len with a type of s_type representing unencrypted as 0, encrypted as 1, and laser toggle as 2

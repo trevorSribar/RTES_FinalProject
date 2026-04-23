@@ -41,7 +41,7 @@
 
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1
-#define RPI_TYPE TYPE_SENDER
+#define RPI_TYPE TYPE_RECEIVOR
 
 #define NUM_THREADS (6+1)
 #define SERVO_PRIO              (5)

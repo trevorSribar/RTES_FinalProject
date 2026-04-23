@@ -91,6 +91,7 @@ char *uart_receive()
     }
   }
 
+  buffer[1] = serialGetchar(serialPort);
   int strLen = (int)buffer[1];
 
   for (int i = strLen - dataCount + 2; i < strLen + 2; i++)

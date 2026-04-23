@@ -136,7 +136,6 @@ void main(void)
         perror("UART init error\n\r");
         return;
     }
-    echo_UART();
     terminal_init(&addHead);
     keygen_init();
     #if (RPI_TYPE == TYPE_SENDER)
@@ -216,6 +215,7 @@ void main(void)
     printf("\nStarting scheduler\n");
     #if (FINDING_WCET == TRUE)
     printf("Finding WCETs, scheduler %u times\n", NUM_TIMES_TEST);
+    echo_UART();
     for(int i = 0; i<NUM_TIMES_TEST; i++){
         clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
         sem_post(&task_sems[1]);
@@ -245,6 +245,7 @@ void main(void)
     }
     print_WCETs();
     #else
+    echo_UART();
     for(;;){
         clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
         sem_post(&task_sems[1]);
@@ -521,7 +522,7 @@ void *Service_5_UART(void *)
             sentenceToReceive = uart_receive();
             if(sentenceToReceive!=NULL){
                 i = 0;
-                *addHead->sentenceNonce = &(sentenceToReceive[2]);
+                memcpy(addHead->sentenceNonce, &sentenceToReceive[2], ENCRYPTION_NONCE_LENGTH);
                 sentenceLL_addSentence(&addHead, &(sentenceToReceive[2+ENCRYPTION_NONCE_LENGTH]), sentenceToReceive[1]);
             }
         }
@@ -551,7 +552,7 @@ void *Service_6_Terminal(void *){
         terminal_read_char();
         #else
         if(sentenceLL_getNumSentencesToSend()>0){
-            terminal_printDecryptedSentence(&sendHead);
+            terminal_print_and_delete_DecryptedSentence(&sendHead);
         }
         #endif
         #if (FINDING_WCET == TRUE)
@@ -567,12 +568,11 @@ void *Service_6_Terminal(void *){
 void echo_UART()
 {
     printf("Running UART echo function...\n");
-    char *sentenceToReceive;
+    char *sentenceToReceive = NULL;
 
     #if (RPI_TYPE == TYPE_SENDER)
 
     uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
-    *sentenceToReceive;
     while (sentenceToReceive == NULL)
     {
         sentenceToReceive = uart_receive();
@@ -580,7 +580,6 @@ void echo_UART()
 
     #else
 
-    *sentenceToReceive;
     while (sentenceToReceive == NULL)
     {
         sentenceToReceive = uart_receive();

@@ -3,6 +3,7 @@
 
 #define DEVICE_ID 0x48
 #define PIN_BASE 200
+#define ADC_PHOTOSENSOR_READ_HIGH 30000
 
 //Initialize the ADS1115 device 
 void init_ads1115(void);

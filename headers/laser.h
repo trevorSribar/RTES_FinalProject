@@ -1,5 +1,7 @@
 #include "generic.h"
 
+#define LASER_TIME_ON 3500
+
 void init_laser_send(void);
 
 void init_laser_receive(void);

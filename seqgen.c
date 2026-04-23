@@ -239,20 +239,25 @@ void *Service_1_Servos(void)
     pthread_exit((void *)0);
 }
 
-// external periferal service
+// external periferal service modify change needs something
 void *Service_2_Periferal(void) 
 {
     printf("external periferal service started\t");
-
+    uint16_t readData;
+    uint16_t numRun;
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
-        nanosleep(12000);
+        nanosleep(LASER_TIME_ON); // add a define for this
         laser_off();
         #else
+        while(get_laser_state_gpio==0);
+        readData = read_ads1115();
+        if(readData > ADC_PHOTOSENSOR_READ_HIGH){
 
+        }
         #endif
     }
 
@@ -272,7 +277,7 @@ void *Service_3_Encrypt(void)
             // create a new nonce
             encryption_updateNonce();
             // encrypt the data where we need to
-            encryption_encryptData(encryptHead.sentence, encryptHead.numCharacters);
+            encryption_encryptData(encryptHead->sentence, encryptHead->numCharacters);
             // say that we have encrypted the data
             sentenceLL_encryptedSentence(&encryptHead,encryption_getNonceAddress());
         }

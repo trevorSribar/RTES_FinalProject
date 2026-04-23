@@ -17,6 +17,9 @@
 // functions
 //
 
+// sets the inital key (0)
+void keygen_init();
+
 // generates a key based on what servo data was sent and what basises were received
 void keygen_sender(uint8_t *sentServoData, uint8_t *measuredServoBasis);
 

@@ -81,7 +81,7 @@ uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
 uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
 uint8_t generateNewKey = FALSE;
 uint16_t numRunPeriferal = 0;
-uint8_t currentKeygenIndexToSend = 0;
+uint8_t keygenIndex = 0;
 #if (RPI_TYPE == TYPE_RECEIVOR)
 uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 #endif
@@ -128,6 +128,7 @@ void main(void)
         return 1;
     }
     terminal_init(&addHead);
+    keygen_init();
     #if (RPI_TYPE == TYPE_SENDER)
     init_laser_send();
     #else
@@ -358,18 +359,21 @@ void *Service_3_Encrypt(void)
 // keygen service
 void *Service_4_Keygen(void) 
 {
-    uint8_t currentReadIndexForKeygen
+    uint8_t lastComputedKeygenIndex;
     printf("Keygen service started\t");
 
     while(!abort_service[4])
     {
         sem_wait(&task_sems[4]);
         // function changes based on whether we are the sender or receiver pi
-        #if (RPI_TYPE == TYPE_SENDER)
-        keygen_sender(servoPosition,communicatedServoBasis);
-        #else
-        keygen_receiver(sensedData,servoPosition,communicatedServoBasis);
-        #endif
+        if(keygenIndex>lastComputedKeygenIndex){
+            #if (RPI_TYPE == TYPE_SENDER)
+            keygen_senderByByte(servoPosition,communicatedServoBasis,lastComputedKeygenIndex,keygenIndex);
+            #else
+            keygen_receiverByByte(sensedData,servoPosition,communicatedServoBasis,lastComputedKeygenIndex,keygenIndex);
+            #endif
+            lastComputedKeygenIndex=keygenIndex;
+        }
     }
 
     pthread_exit((void *)0);
@@ -379,16 +383,22 @@ void *Service_4_Keygen(void)
 void *Service_5_UART(void) 
 {
     printf("UART service started\t");
-    uint8_t currentKeygenIndex = 0;
     while(!abort_service[5])
     {
         sem_wait(&task_sems[5]);
         #if (RPI_TYPE == TYPE_SENDER)
-        if((numRunPeriferal-(8*currentKeygenIndex))%8==0){
-            currentKeygenIndex++; // this means I need to send the new index I have gotten!
-            
+        if(numRunPeriferal - 8 * keygenIndex >= 8){ // if we need to send keygen
+            uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8;
+            // send the current servo data
+            // receive the current servo data
+            keygenIndex++;
+        }
+        while(sentenceLL_getNumSentencesToSend()>0){
+            // send the sentence
+            sentenceLL_removeSentence(&sendHead);
         }
         #else
+        // if we are receiving servo data, when done increment keygenIndex
         #endif
     }
 

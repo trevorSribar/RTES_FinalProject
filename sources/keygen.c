@@ -5,11 +5,16 @@
 #include "keygen.h"
 
 // variables
-static char key[ENCRYPTION_KEY_LENGTH];
+static char key[ENCRYPTION_KEY_LENGTH] = {0};
 
 //
 // functions
 //
+
+// sets the inital key (0)
+void keygen_init(){
+    encryption_setKey(key);
+}
 
 // generates a key based on what servo data was sent and what basises were received
 void keygen_sender(uint8_t *sentServoData, uint8_t *measuredServoBasis){

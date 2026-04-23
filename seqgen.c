@@ -165,7 +165,7 @@ void main(void)
         printf("%c",tempSentence[i]);
     }
     #endif
-    while(1);
+    return;
 
     // configuring the main thread
     mainpid=getpid();

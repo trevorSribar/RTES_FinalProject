@@ -158,7 +158,7 @@ void main(void)
     char sentence[36];
     char *tempSentence;
     tempSentence = uart_receive();
-    while(tempSentence!=NULL){
+    while(tempSentence==NULL){
         tempSentence = uart_receive();
     }
     for(uint8_t i = 0; i < length; i++){

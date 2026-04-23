@@ -581,32 +581,12 @@ void echo_UART()
 
     #if (RPI_TYPE == TYPE_SENDER)
 
-    uart_send("a", 1, 0x11);
-    printf("sent: \"a\"\n");
+    uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
     *sentenceToReceive;
     while (sentenceToReceive == NULL)
     {
         sentenceToReceive = uart_receive();
     }
-    printf("received: \"%s\"\n", sentenceToReceive);
-
-    uart_send("b", 1, 0x11);
-    printf("sent: \"b\"\n");
-    *sentenceToReceive;
-    while (sentenceToReceive == NULL)
-    {
-        sentenceToReceive = uart_receive();
-    }
-    printf("received: \"%s\"\n", sentenceToReceive);
-
-    uart_send("c", 1, 0x11);
-    printf("sent: \"c\"\n");
-    *sentenceToReceive;
-    while (sentenceToReceive == NULL)
-    {
-        sentenceToReceive = uart_receive();
-    }
-    printf("received: \"%s\"\n", sentenceToReceive);
 
     #else
 
@@ -615,24 +595,6 @@ void echo_UART()
     {
         sentenceToReceive = uart_receive();
     }
-    printf("received: \"%s\"\n", sentenceToReceive);
-    uart_send("a", 1, 0x11);
-    printf("sent: \"a\"\n");
-
-    while (sentenceToReceive == NULL)
-    {
-        sentenceToReceive = uart_receive();
-    }
-    printf("received: \"%s\"\n", sentenceToReceive);
-    uart_send("b", 1, 0x11);
-    printf("sent: \"b\"\n");
-
-    while (sentenceToReceive == NULL)
-    {
-        sentenceToReceive = uart_receive();
-    }
-    printf("received: \"%s\"\n", sentenceToReceive);
-    uart_send("c", 1, 0x11);
-    printf("sent: \"c\"\n");
+    uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
 }
 #endif // (FINDING_WCET == TRUE)

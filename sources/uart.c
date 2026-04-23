@@ -58,14 +58,18 @@ void uart_send(char *s, int s_len, int s_type)
 
 char *uart_receive()
 {
+  if(serialDataAvail(serialPort)){ //remvoe this
+    printf("there is data avalable\n\r");
+  }
   if (!serialDataAvail(serialPort) && dataFlag == 0)
   {
     return NULL;
   }
 
   memset(buffer, '\0', sizeof(buffer));
-
   buffer[0] = serialGetchar(serialPort);
+  printf("data type\n\r");//remvoe this
+  printf("%d",buffer[0]);//remvoe this
 
   if (currentDataType == 0x14) // changed from  dataFlag && currentDataType == 0x14
   {
@@ -87,6 +91,8 @@ char *uart_receive()
   }
 
   buffer[1] = serialGetchar(serialPort);
+  printf("num inputs\n\r");//remvoe this
+  printf("%d",buffer[1]);//remvoe this
   int strLen = (int)buffer[1];
   int dataCount = strLen;
 

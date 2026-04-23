@@ -146,6 +146,23 @@ void main(void)
     calibrate_ads1115();
     #endif
 
+    // remove this, stuff added to test send/receive
+    #if (RPI_TYPE == TYPE_SENDER)
+    char sentence = {"This is a sentence that we will send"};
+    uint8_t length = 36;
+    for(uint8_t i = 0; i < length; i++){
+        prinf("%c",sentence[i]);
+    }
+    uart_send(sentence, length, UART_SENDER_SENTENCE_ENCRYPTED);
+    #else
+    char sentence[36];
+    char *tempSentence;
+    tempSentence = uart_receive();
+    for(uint8_t i = 0; i < length; i++){
+        prinf("%c",tempSentence[i]);
+    }
+    #endif
+    while(1);
 
     // configuring the main thread
     mainpid=getpid();

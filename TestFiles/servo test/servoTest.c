@@ -186,10 +186,10 @@ void *Service_1_Servos(void *threadp)
         printf("servos waiting\n\r");
         sem_wait(&task_sems[1]);
         for(uint8_t i = 0; i < NUM_RUN_SERVO; i++){
-            servoPosition[servoMoveCount] = servo_set_angle_random();
-            printf("%d: Moved servo to %d\n\r",i,servoPosition[servoMoveCount]);
+            servo_set_angle(servoMoveCount % 4);
+            printf("%d: Moved servo to %d\n\r",i,servoMoveCount);
             servoMoveCount++;
-            sleep(1);
+            sleep(2);
         }
         // servo_set_angle(0); // used to rest servo to 0 position
         abort_service[1]=TRUE;

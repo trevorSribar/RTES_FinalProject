@@ -3,15 +3,15 @@
 
 #define SERVO_PIN 1 
 #define PWM_CLOCK 19200U * 1000U
-#define PWM_CLK_DIV 192U
+#define PWM_CLK_DIV 384U
 #define PWM_RANGE 2000U
 #define PWM_FREQUENCY ((PWM_CLOCK / PWM_CLK_DIV) / PWM_RANGE)
 
 #define NUM_POSITIONS 4
-#define SERVO_ANGLE_0 100
-#define SERVO_ANGLE_45 175
-#define SERVO_ANGLE_90 350
-#define SERVO_ANGLE_135 425
+#define SERVO_ANGLE_0 50
+#define SERVO_ANGLE_45 75
+#define SERVO_ANGLE_90 100
+#define SERVO_ANGLE_135 125
 
 //initializes the servo motor pwm output
 void servo_init(void);

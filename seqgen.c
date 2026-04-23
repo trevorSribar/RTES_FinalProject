@@ -56,9 +56,10 @@
 #define NS_PER_SEC              (NS_PER_MS * 1000)
 #define SERVO_MOVE_TIME         (425*NS_PER_MS)
 #define HALF_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/2)
+#define TIMER_RELATIVE 0
 
 // added code for finding WCET
-#define FINDING_WCET TRUE
+#define FINDING_WCET FALSE
 #if (FINDING_WCET == TRUE)
 #define USEC_PER_SEC 1000000
 #define NSEC_PER_USEC 1000
@@ -66,7 +67,6 @@
 #define PRINT 0
 #define LOG 1
 #define FIND_MODE PRINT
-#define TIMER_RELATIVE 0
 uint32_t WCET_task[NUM_THREADS] = {0};
 void print_WCETs();
 void echo_UART();

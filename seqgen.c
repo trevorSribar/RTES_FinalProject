@@ -80,6 +80,7 @@ sentenceLinkedList_t *addHead, *encryptHead, *sendHead;
 uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
 uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
 uint8_t generateNewKey = FALSE;
+uint16_t numRunPeriferal = 0;
 #if (RPI_TYPE == TYPE_RECEIVOR)
 uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 #endif
@@ -281,16 +282,16 @@ void *Service_2_Periferal(void)
 {
     printf("external periferal service started\t");
     uint16_t readData;
-    uint16_t numRun = 0;
+    numRunPeriferal = 0;
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
-        if(numRun>=ENCRYPTION_KEY_LENGTH*8){
+        if(numRunPeriferal>=ENCRYPTION_KEY_LENGTH*8){
             if(generateNewKey!=TRUE){
                 sem_post(&task_sems[0]);
                 continue;
             }
-            numRun = 0;
+            numRunPeriferal = 0;
         }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
@@ -300,14 +301,14 @@ void *Service_2_Periferal(void)
         while(get_laser_state_gpio==0);
         readData = read_ads1115();
         if(readData > ADC_PHOTOSENSOR_READ_HIGH){
-            sensedData[numRun] = 1;
+            sensedData[numRunPeriferal] = 1;
         }
         else{
-            sensedData[numRun] = 0;
+            sensedData[numRunPeriferal] = 0;
         }
         while(get_laser_state_gpio==1);
         #endif
-        numRun++;
+        numRunPeriferal++;
         sem_post(&task_sems[0]);
     }
 
@@ -356,6 +357,7 @@ void *Service_3_Encrypt(void)
 // keygen service
 void *Service_4_Keygen(void) 
 {
+    uint8_t currentReadIndexForKeygen
     printf("Keygen service started\t");
 
     while(!abort_service[4])
@@ -380,7 +382,10 @@ void *Service_5_UART(void)
     while(!abort_service[5])
     {
         sem_wait(&task_sems[5]);
-        
+        #if (RPI_TYPE == TYPE_SENDER)
+
+        #else
+        #endif
     }
 
     pthread_exit((void *)0);

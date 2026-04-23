@@ -148,7 +148,7 @@ void main(void)
 
     // remove this, stuff added to test send/receive
     #if (RPI_TYPE == TYPE_SENDER)
-    char sentence = {"This is a sentence that we will send"};
+    char sentence[36] = ("This is a sentence that we will send");
     uint8_t length = 36;
     for(uint8_t i = 0; i < length; i++){
         prinf("%c",sentence[i]);

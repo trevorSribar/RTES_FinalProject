@@ -51,6 +51,9 @@
 #define UART_PRIO               (2)
 #define TERMINAL_PRIO           (1)
 
+#define NS_PER_MS               1000000
+#define NS_PER_SEC              (NS_PER_MS * 1000)
+#define SERVO_MOVE_TIME         (425*NS_PER_MS)
 
 // added code for finding WCET
 #define FINDING_WCET TRUE
@@ -77,6 +80,7 @@ uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
 uint8_t generateNewKey = FALSE;
 #if (RPI_TYPE == TYPE_RECEIVOR)
 uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
+struct timespec laserOff;
 #endif
 
 
@@ -204,6 +208,29 @@ void main(void)
         print_WCETs();
     #endif
 
+    // schedueler
+    struct timespec startIterationTime;
+    struct timespec endTime;
+    uint32_t numNanosecondsSleep;
+    while(1){
+        #if (RPI_TYPE == TYPE_SENDER)
+        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
+        sem_post(&task_sems[1]);
+        sem_post(&task_sems[3]);
+        sem_post(&task_sems[4]);
+        sem_post(&task_sems[5]);
+        clock_gettime(CLOCK_MONOTONIC,&endTime);
+        startIterationTime.tv_nsec += SERVO_MOVE_TIME;
+        if(startIterationTime.tv_nsec>NS_PER_SEC){
+            startIterationTime.tv_nsec-=NS_PER_SEC;
+            startIterationTime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+        sem_post(&task_sems[2]);
+
+        #endif
+    }
+
     // joining threads and clearing semaphors
     for(uint8_t i=1;i<NUM_THREADS;i++){
         abort_service[i] = TRUE;
@@ -268,6 +295,8 @@ void *Service_2_Periferal(void)
         else{
             sensedData[numRun] = 0;
         }
+        while(get_laser_state_gpio==1);
+        clock_gettime(CLOCK_MONOTONIC,&laserOff);
         #endif
         numRun++;
     }
@@ -347,7 +376,7 @@ void *Service_5_UART(void)
     pthread_exit((void *)0);
 }
 
-// terminal service TODO must fix modify change to do
+// terminal service
 void *Service_6_Terminal(void){
     printf("Terminal service started\t");
 

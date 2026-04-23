@@ -122,9 +122,9 @@ void main(void)
     {
     printf("Could not initialize WiringPi library\n");
     syslog(LOG_PERROR, "Could not initialize WiringPi library\n");
-    return 1;
+    return;
     }
-    
+
     // initalizing other files
     if(encryption_init()==ENCRYPTION_ERROR){
         perror("Encryption init error\n\r");

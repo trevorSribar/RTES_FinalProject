@@ -51,6 +51,7 @@
 #define UART_PRIO               (2)
 #define TERMINAL_PRIO           (1)
 
+#define NS_PER_USEC             1000
 #define NS_PER_MS               1000000
 #define NS_PER_SEC              (NS_PER_MS * 1000)
 #define SERVO_MOVE_TIME         (425*NS_PER_MS)
@@ -280,19 +281,20 @@ void *Service_2_Periferal(void)
 {
     printf("external periferal service started\t");
     uint16_t readData;
-    uint16_t numRun;
+    uint16_t numRun = 0;
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
-        if(numRun>ENCRYPTION_KEY_LENGTH*8){
+        if(numRun>=ENCRYPTION_KEY_LENGTH*8){
             if(generateNewKey!=TRUE){
+                sem_post(&task_sems[0]);
                 continue;
             }
             numRun = 0;
         }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
-        nanosleep(LASER_TIME_ON); // add a define for this
+        nanosleep((struct timespec){.tv_sec = 0, .tv_nsec = LASER_TIME_ON*NS_PER_USEC}); // add a define for this
         laser_off();
         #else
         while(get_laser_state_gpio==0);

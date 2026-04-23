@@ -22,22 +22,9 @@ void uart_send(char *s, int s_len, int s_type)
   {
     if (serialDataAvail(serialPort))
     {
-      if (currentDataType == 0x13) //special scenario where receiver sends back servo data
-      {
-        currentDataType = 0x15;
-        serialPutchar(serialPort, currentDataType);
-        serialPutchar(serialPort, (char)s_len); //cast s_len to char, string length can never be greater than 255 anyway
-        for (int i = 0; i < s_len; i++)
-        {
-          serialPutchar(serialPort, s[i]);
-        }
-        return;
-      }
-      else 
-      {
-        serialGetchar(serialPort);
-        dataFlag = 0;
-      }
+      serialGetchar(serialPort); // consume one ACK/status byte
+      dataFlag = 0;
+      currentDataType = 0x14;
     }
   }
   if (s_type > 2 || s_type < 0)
@@ -66,26 +53,31 @@ char *uart_receive()
   memset(buffer, '\0', sizeof(buffer));
   buffer[0] = serialGetchar(serialPort);
 
-  if (currentDataType == 0x14) // changed from  dataFlag && currentDataType == 0x14
+  // Always treat the first byte as a frame type to avoid stale-state desync.
+  switch (buffer[0])
   {
-    switch (buffer[0])
-    {
-      case 0x11: //unencrypted string
-      case 0x12: //encrypted string
-      case 0x13: //servo data
-        currentDataType = buffer[0];
-        break;
-      default: //in any other situation don't receive string - perform a serial flush
-        serialFlush(serialPort);
-        dataFlag = 0;
-        return NULL;
-    }
+    case 0x11: //unencrypted string
+    case 0x12: //encrypted string
+    case 0x13: //servo data
+      currentDataType = buffer[0];
+      break;
+    default: //in any other situation don't receive string - perform a serial flush
+      serialFlush(serialPort);
+      dataFlag = 0;
+      return NULL;
   }
 
   while (!serialDataAvail(serialPort)) {}
 
   buffer[1] = serialGetchar(serialPort);
-  int strLen = (int)buffer[1];
+  int strLen = (int)((uint8_t)buffer[1]);
+  if (strLen > BUFFER_SIZE)
+  {
+    serialFlush(serialPort);
+    currentDataType = 0x14;
+    dataFlag = 0;
+    return NULL;
+  }
   int dataCount = strLen;
 
   for (int i = 2; i < strLen + 2; i++)
@@ -103,11 +95,7 @@ char *uart_receive()
     }
   }
 
-  if (currentDataType != 0x13)
-  {
-    currentDataType = 0x14;
-  }
-
+  currentDataType = 0x14;
   serialPutchar(serialPort, currentDataType); //ack to sender from receiver
 
   return buffer;
@@ -115,14 +103,7 @@ char *uart_receive()
 
 int uart_str_len()
 {
-  if (currentDataType != 0x14)
-  {
-    return (int)buffer[1];
-  }
-  else
-  {
-    return 0;
-  }
+  return (int)((uint8_t)buffer[1]);
 }
 
 void sender_test_set()

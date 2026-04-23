@@ -1,3 +1,7 @@
+// header for UART communication between the sending and receiving Raspberry Pis
+// Kenneth Alcineus
+// 4/18/2026
+
 #include "generic.h"
 #include <wiringSerial.h>
 
@@ -10,6 +14,9 @@ void uart_send(char *s, int s_len, int s_type);
 
 //receive a string over UART
 char *uart_receive();
+
+//return the length of the string that has not yet been fully processed by the receiver
+int uart_str_len();
 
 //test set function for the sending Raspberry Pi (TEST_SET=1)
 void sender_test_set();

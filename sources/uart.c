@@ -30,7 +30,7 @@ void uart_send(char *s, int s_len, int s_type)
     return;
   }
 
-  char currentDataType = 0x11 + s_type; //s_type should only be of values 0, 1, or 2 to take advantage of device control characters
+  currentDataType = 0x11 + s_type; //s_type should only be of values 0, 1, or 2 to take advantage of device control characters
   serialPutchar(serialPort, currentDataType);
   serialPutchar(serialPort, (char)s_len); //cast s_len to char, string length can never be greater than 256 anyway
   dataFlag = 1;

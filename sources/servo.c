@@ -11,7 +11,7 @@ void servo_init(void){
 
     pinMode(SERVO_PIN, PWM_OUTPUT);
     pwmSetMode(PWM_MODE_MS);
-    pwmSetClock(PWM_CLK_DIV);
+    pwmSetClock(PWM_CLK_UART_DIV);
     pwmSetRange(1000); 
 
 }

@@ -199,18 +199,6 @@ void main(void)
     rc=pthread_create(&threads[6],&rt_sched_attr[6],Service_6_Terminal, NULL);
     if(rc < 0)  { perror("\nError creating service 6");}
     else        {printf("S6, ");}
- 
-    // Finding WCETs
-    #if (FINDING_WCET == TRUE)
-        rt_param[0].sched_priority = rt_min_prio;
-        pthread_attr_setschedparam(&rt_sched_attr[0], &rt_param[0]);
-        rc = pthread_create(&threads[0], &rt_sched_attr[0], Service_WCET, NULL);
-        if(rc < 0)  { perror("\nError creating service WCET");}
-        else        {printf("\tWCET");}
-        pthread_join(threads[0],NULL);
-        printf("WCET joined\n");
-        print_WCETs();
-    #endif
 
     // schedueler
     struct timespec startIterationTime;
@@ -252,6 +240,7 @@ void main(void)
     }
     encryption_destroy();
     sentenceLL_destroy(&sendHead);
+    print_WCETs();
     printf("\nEnd Program\n");
     return;
 }
@@ -262,10 +251,16 @@ void *Service_1_Servos(void *)
 {
     uint16_t servoMoveCount = 0;
     printf("Servo service started\t");
+    #if (FINDING_WCET == TRUE)
+        struct timespec releaseTime, completionTime;
+        #endif
 
     while(!abort_service[1])
     {
         sem_wait(&task_sems[1]);
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
         if(servoMoveCount>ENCRYPTION_KEY_LENGTH*8){
             if(generateNewKey!=TRUE){
                 continue;
@@ -274,6 +269,10 @@ void *Service_1_Servos(void *)
         }
         servoPosition[servoMoveCount] = servo_set_angle_random();
         servoMoveCount++;
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        getElapsedTime(1, releaseTime, completionTime);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -285,9 +284,16 @@ void *Service_2_Periferal(void *)
     printf("external periferal service started\t");
     uint16_t readData;
     numRunPeriferal = 0;
+    #if (FINDING_WCET == TRUE)
+        struct timespec releaseTime, completionTime;
+        #endif
+
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
         if(numRunPeriferal>=ENCRYPTION_KEY_LENGTH*8){
             if(generateNewKey!=TRUE){
                 sem_post(&task_sems[0]);
@@ -311,6 +317,10 @@ void *Service_2_Periferal(void *)
         while(get_laser_state_gpio==1);
         #endif
         numRunPeriferal++;
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        getElapsedTime(2, releaseTime, completionTime);
+        #endif
         sem_post(&task_sems[0]);
     }
 
@@ -321,10 +331,16 @@ void *Service_2_Periferal(void *)
 void *Service_3_Encrypt(void *) 
 {
     printf("Encryption service started\t");
+    #if (FINDING_WCET == TRUE)
+        struct timespec releaseTime, completionTime;
+        #endif
 
     while(!abort_service[3])
     {
         sem_wait(&task_sems[3]);
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
         // if we have any data to encrypt
         while(sentenceLL_getNumSentencesToEncrypt()!=0){
             #if (RPI_TYPE == TYPE_SENDER) // encrypting data
@@ -351,6 +367,10 @@ void *Service_3_Encrypt(void *)
             }
             #endif
         }
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        getElapsedTime(3, releaseTime, completionTime);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -361,10 +381,16 @@ void *Service_4_Keygen(void *)
 {
     uint8_t lastComputedKeygenIndex;
     printf("Keygen service started\t");
+    #if (FINDING_WCET == TRUE)
+        struct timespec releaseTime, completionTime;
+        #endif
 
     while(!abort_service[4])
     {
         sem_wait(&task_sems[4]);
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
         // function changes based on whether we are the sender or receiver pi
         if(keygenIndex>lastComputedKeygenIndex){
             #if (RPI_TYPE == TYPE_SENDER)
@@ -374,6 +400,11 @@ void *Service_4_Keygen(void *)
             #endif
             lastComputedKeygenIndex=keygenIndex;
         }
+
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        getElapsedTime(4, releaseTime, completionTime);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -383,9 +414,16 @@ void *Service_4_Keygen(void *)
 void *Service_5_UART(void *) 
 {
     printf("UART service started\t");
+    #if (FINDING_WCET == TRUE)
+        struct timespec releaseTime, completionTime;
+        #endif
+
     while(!abort_service[5])
     {
         sem_wait(&task_sems[5]);
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
         #if (RPI_TYPE == TYPE_SENDER)
         if(numRunPeriferal - 8 * keygenIndex >= 8){ // if we need to send keygen
             uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8;
@@ -443,6 +481,10 @@ void *Service_5_UART(void *)
             }
         }
         #endif
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        getElapsedTime(5, releaseTime, completionTime);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -451,15 +493,25 @@ void *Service_5_UART(void *)
 // terminal service
 void *Service_6_Terminal(void *){
     printf("Terminal service started\t");
+    #if (FINDING_WCET == TRUE)
+        struct timespec releaseTime, completionTime;
+        #endif
 
     while(!abort_service[6])
     {
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
         #if (RPI_TYPE == TYPE_SENDER)
         terminal_read_char();
         #else
         if(sentenceLL_getNumSentencesToSend()>0){
             terminal_printDecryptedSentence(&sendHead);
         }
+        #endif
+        #if (FINDING_WCET == TRUE)
+        clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        getElapsedTime(6, releaseTime, completionTime);
         #endif
     }
 
@@ -468,24 +520,6 @@ void *Service_6_Terminal(void *){
 
 
 #if (FINDING_WCET == TRUE)
-// finds WCETs of each task individually
-void *Service_WCET(void *){
-    printf("WCET finder started\n");
-    syslog(LOG_INFO,("WCET finder started\n"));
-    struct timespec startTime;
-    struct timespec endTime;
-    for(int i = 0; i < NUM_TIMES_TEST; i++){
-        for(int j = 1; j < NUM_THREADS; j++){
-            clock_gettime(CLOCK_MONOTONIC,&startTime);
-            sem_post(&task_sems[j]);
-            sched_yield();
-            clock_gettime(CLOCK_MONOTONIC,&endTime);
-            getElapsedTime(j,startTime,endTime);
-        }
-    }
-    pthread_exit((void *)0);
-}
-
 // gets the epalsied time and adds it to the WCET if it is the greatest time that has elapsed for that function
 static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, struct timespec completionTime){
     uint32_t completionTimeS_inUS = (completionTime.tv_sec - releaseTime.tv_sec)*USEC_PER_SEC;

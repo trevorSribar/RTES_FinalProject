@@ -493,10 +493,10 @@ void *Service_5_UART(void *)
         while(sentenceLL_getNumSentencesToSend()>0){
             char bytesToSend[ENCRYPTION_NONCE_LENGTH+SENTENCELL_SENTENCE_SIZE];
             uint8_t length;
-            sentenceLL_getSentence(&sendHead, &sentenceToSend[ENCRYPTION_NONCE_LENGTH], &length);
+            sentenceLL_getSentence(&sendHead, &bytesToSend[ENCRYPTION_NONCE_LENGTH], &length);
             memcpy(bytesToSend,sendHead->sentenceNonce,ENCRYPTION_NONCE_LENGTH);
             length+=ENCRYPTION_NONCE_LENGTH;
-            uart_send(sentenceToSend, length, UART_SENDER_SENTENCE_ENCRYPTED);
+            uart_send(bytesToSend, length, UART_SENDER_SENTENCE_ENCRYPTED);
             sentenceLL_removeSentence(&sendHead);
         }
         #else

@@ -54,6 +54,7 @@
 #define NS_PER_MS               1000000
 #define NS_PER_SEC              (NS_PER_MS * 1000)
 #define SERVO_MOVE_TIME         (425*NS_PER_MS)
+#define HALF_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/2)
 
 // added code for finding WCET
 #define FINDING_WCET TRUE
@@ -209,7 +210,6 @@ void main(void)
 
     // schedueler
     struct timespec startIterationTime;
-    struct timespec endTime;
     uint32_t numNanosecondsSleep;
     while(1){
         clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
@@ -217,13 +217,24 @@ void main(void)
         sem_post(&task_sems[3]);
         sem_post(&task_sems[4]);
         sem_post(&task_sems[5]);
-        clock_gettime(CLOCK_MONOTONIC,&endTime);
-        startIterationTime.tv_nsec += SERVO_MOVE_TIME;
+
+        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
         if(startIterationTime.tv_nsec>NS_PER_SEC){
             startIterationTime.tv_nsec-=NS_PER_SEC;
             startIterationTime.tv_sec++;
         }
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+
+        sem_post(&task_sems[3]);
+        sem_post(&task_sems[5]);
+
+        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
+        if(startIterationTime.tv_nsec>NS_PER_SEC){
+            startIterationTime.tv_nsec-=NS_PER_SEC;
+            startIterationTime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+
         sem_post(&task_sems[2]);
         sem_wait(&task_sems[0]);
     }

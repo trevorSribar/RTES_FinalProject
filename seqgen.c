@@ -127,6 +127,7 @@ void main(void)
         perror("UART init error\n\r");
         return;
     }
+    echo_UART();
     terminal_init(&addHead);
     keygen_init();
     #if (RPI_TYPE == TYPE_SENDER)
@@ -570,5 +571,68 @@ void print_WCETs(){
         printf("WCET Task %u:\t%u\n",i,WCET_task[i]);
         #endif
     }
+}
+
+// ensure that the RPis are echoing characters between each other over UART
+void echo_UART()
+{
+    printf("Running UART echo function...\n");
+    char *sentenceToReceive;
+
+    #if (RPI_TYPE == TYPE_SENDER)
+
+    uart_send("a", 1, 0x11);
+    printf("sent: \"a\"\n");
+    *sentenceToReceive;
+    while (sentenceToReceive == NULL)
+    {
+        sentenceToReceive = uart_receive();
+    }
+    printf("received: \"%s\"\n", sentenceToReceive);
+
+    uart_send("b", 1, 0x11);
+    printf("sent: \"b\"\n");
+    *sentenceToReceive;
+    while (sentenceToReceive == NULL)
+    {
+        sentenceToReceive = uart_receive();
+    }
+    printf("received: \"%s\"\n", sentenceToReceive);
+
+    uart_send("c", 1, 0x11);
+    printf("sent: \"c\"\n");
+    *sentenceToReceive;
+    while (sentenceToReceive == NULL)
+    {
+        sentenceToReceive = uart_receive();
+    }
+    printf("received: \"%s\"\n", sentenceToReceive);
+
+    #else
+
+    *sentenceToReceive;
+    while (sentenceToReceive == NULL)
+    {
+        sentenceToReceive = uart_receive();
+    }
+    printf("received: \"%s\"\n", sentenceToReceive);
+    uart_send("a", 1, 0x11);
+    printf("sent: \"a\"\n");
+
+    while (sentenceToReceive == NULL)
+    {
+        sentenceToReceive = uart_receive();
+    }
+    printf("received: \"%s\"\n", sentenceToReceive);
+    uart_send("b", 1, 0x11);
+    printf("sent: \"b\"\n");
+
+    while (sentenceToReceive == NULL)
+    {
+        sentenceToReceive = uart_receive();
+    }
+    printf("received: \"%s\"\n", sentenceToReceive);
+    uart_send("c", 1, 0x11);
+    printf("sent: \"c\"\n");
 }
 #endif // (FINDING_WCET == TRUE)

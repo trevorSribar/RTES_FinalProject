@@ -16,3 +16,9 @@ void capture_ads1115(uint16_t **buffer, int b_len);
 
 //Capture a single ADS1115 reading and return it
 uint16_t read_ads1115(void);
+
+//Capture a single ADS1115 reading with the calibration as a regular integer
+int read_calibrated(void);
+
+//Return the calibration
+int get_calibration(void);

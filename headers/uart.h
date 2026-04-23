@@ -8,6 +8,9 @@
 #define BAUD_RATE 115200
 #define BUFFER_SIZE 256
 #define TEST_SET 1
+#define UART_SENDER_SERVO_DATA 0x13
+#define UART_SENDER_SENTENCE_ENCRYPTED 0x12 
+#define UART_NUM_CHECK_EMPTY_BE_SURE 3
 
 //send string s over UART over a length of s_len with a type of s_type representing unencrypted as 0, encrypted as 1, and laser toggle as 2
 void uart_send(char *s, int s_len, int s_type);

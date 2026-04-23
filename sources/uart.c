@@ -211,33 +211,3 @@ void close_uart()
   programFlag = 0;
   serialClose(serialPort);
 }
-
-int main()
-{
-  if (TEST_SET)
-  {
-    if (initialize_uart())
-    {
-      return 1;
-    }
-
-    if (TEST_SET == 1)
-    {
-      sender_test_set();
-    }
-
-    else if (TEST_SET == 2)
-    {
-      receiver_test_set();
-    }
-
-    close_uart();
-  }
-
-  else
-  {
-    while(programFlag) {} //loop until close_uart() is called for UART to be used elsewhere
-  }
-
-  return 0;
-}

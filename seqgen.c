@@ -533,10 +533,18 @@ void *Service_5_UART(void *)
         for(uint8_t i = 0; i < UART_NUM_CHECK_EMPTY_BE_SURE; i++){
             char *sentenceToReceive;
             sentenceToReceive = uart_receive();
-            if(sentenceToReceive!=NULL){
+            if(sentenceToReceive!=NULL &&
+               (sentenceToReceive[0] == (char)(0x11 + UART_SENDER_SENTENCE_UNENCRYPTED) ||
+                sentenceToReceive[0] == (char)(0x11 + UART_SENDER_SENTENCE_ENCRYPTED))){
                 i = 0;
                 memcpy(addHead->sentenceNonce, &sentenceToReceive[2], ENCRYPTION_NONCE_LENGTH);
                 sentenceLL_addSentence(&addHead, &(sentenceToReceive[2+ENCRYPTION_NONCE_LENGTH]), sentenceToReceive[1]-ENCRYPTION_NONCE_LENGTH);
+
+                printf("UART receiver got sentence (%u bytes payload)\n", (uint8_t)sentenceToReceive[1]);
+                for(uint8_t j = ENCRYPTION_NONCE_LENGTH + 2; j < (uint8_t)sentenceToReceive[1] + 2; j++){
+                    printf("%c", sentenceToReceive[j]);
+                }
+                printf("\n");
             }
         }
         #endif

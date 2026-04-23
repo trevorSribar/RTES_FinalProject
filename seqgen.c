@@ -118,6 +118,13 @@ void main(void)
     clock_gettime(CLOCK_MONOTONIC,&start_time); // start_time->tv_sec, start_time->tv_nsec
     syslog(LOG_INFO, "Initalization start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
 
+    if (wiringPiSetup() == -1)
+    {
+    printf("Could not initialize WiringPi library\n");
+    syslog(LOG_PERROR, "Could not initialize WiringPi library\n");
+    return 1;
+    }
+    
     // initalizing other files
     if(encryption_init()==ENCRYPTION_ERROR){
         perror("Encryption init error\n\r");

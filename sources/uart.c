@@ -196,13 +196,6 @@ int initialize_uart()
     return 1;
   }
 
-  if (wiringPiSetup() == -1)
-  {
-    printf("Could not initialize WiringPi library\n");
-    syslog(LOG_PERROR, "Could not initialize WiringPi library\n");
-    return 1;
-  }
-
   return 0;
 }
 

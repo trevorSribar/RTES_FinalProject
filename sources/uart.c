@@ -49,7 +49,7 @@ char *uart_receive()
 {
   if (!serialDataAvail(serialPort) || dataFlag == 0)
   {
-    return buffer;
+    return NULL;
   }
 
   memset(buffer, '\0', sizeof(buffer));

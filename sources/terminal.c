@@ -1,4 +1,6 @@
 #include "terminal.h"
+#include <sys/select.h>
+#include <unistd.h>
 
 static int sentence_length = 0;
 static char input_buffer[SENTENCELL_SENTENCE_SIZE];
@@ -12,6 +14,23 @@ void terminal_init(sentenceLinkedList_t **linkedhead)
 
 int terminal_read_char()
 {
+    fd_set readfds;
+    struct timeval timeout = {.tv_sec = 0, .tv_usec = 0};
+
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+
+    int ready = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+    if (ready < 0)
+    {
+        return -1;
+    }
+
+    if (ready == 0 || !FD_ISSET(STDIN_FILENO, &readfds))
+    {
+        return 0;
+    }
+
     int value = getchar();
 	if (value == EOF)
 	{

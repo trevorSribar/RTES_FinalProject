@@ -19,7 +19,7 @@ void keygen_init(){
 // generates a key based on what servo data was sent and what basises were received
 void keygen_sender(uint8_t *sentServoData, uint8_t *measuredServoBasis){
     // reset the key
-    key = {0};
+    memset(key, 0, sizeof(key));
     // iterate over all of the key
     for(uint8_t i = 0; i < ENCRYPTION_KEY_LENGTH; i++){
 
@@ -39,7 +39,7 @@ void keygen_sender(uint8_t *sentServoData, uint8_t *measuredServoBasis){
 // generates a key based on what data was sensed, what bases were used, and what bases were sent
 void keygen_receiver(uint8_t *dataSensed, uint8_t *measuredServoData, uint8_t *reveivedServoData){
     // reset the key
-    key = {0};
+    memset(key, 0, sizeof(key));
     // iterate over all of the key
     for(uint8_t i = 0; i < ENCRYPTION_KEY_LENGTH; i++){
         // iterate over all the bytes of data sent
@@ -65,7 +65,7 @@ void keygen_receiver(uint8_t *dataSensed, uint8_t *measuredServoData, uint8_t *r
 void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, uint8_t startAddress, uint8_t endAddress){
     // if we are starting at nothing, reset the key
     if(startAddress==0){
-        key = {0};
+        memset(key, 0, sizeof(key));
     }
     // iterate over all of the key
     for(uint8_t i = startAddress; i <= endAddress; i++){
@@ -89,7 +89,7 @@ void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, ui
 void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint8_t *reveivedServoData, uint8_t startAddress, uint8_t endAddress){
     // if we are starting at nothing, reset the key
     if(startAddress==0){
-        key = {0};
+        memset(key, 0, sizeof(key));
     }
     // iterate over all of the key
     for(uint8_t i = startAddress; i <= endAddress; i++){

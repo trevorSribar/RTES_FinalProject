@@ -203,6 +203,7 @@ void main(void)
     // schedueler
     struct timespec startIterationTime;
     uint32_t numNanosecondsSleep;
+    printf("\nStarting scheduler\n");
     while(1){
         clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
         sem_post(&task_sems[1]);

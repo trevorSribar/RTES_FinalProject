@@ -58,6 +58,7 @@
 #define SERVO_MOVE_DIVISOR      5
 #define DIVIDED_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/SERVO_MOVE_DIVISOR)
 #define TIMER_RELATIVE 0
+#define LOGGING TRUE
 void echo_UART();
 
 // added code for finding WCET
@@ -218,6 +219,9 @@ void main(void)
     echo_UART();
     for(int i = 0; i<NUM_TIMES_TEST; i++){
         clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
+        #if (LOGGING == TRUE)
+        syslog(LOG_INFO, "Scheduler start:\tsec=%lu\tnsec=%lu\n", startIterationTime.tv_sec, startIterationTime.tv_nsec);
+        #endif
         sem_post(&task_sems[1]);
         sem_post(&task_sems[3]);
         sem_post(&task_sems[4]);
@@ -236,6 +240,10 @@ void main(void)
         }
 
         sem_post(&task_sems[2]);
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
+        syslog(LOG_INFO, "Scheduler end:\tsec=%lu\tnsec=%lu\n", startIterationTime.tv_sec, startIterationTime.tv_nsec);
+        #endif
         sem_wait(&task_sems[0]);
     }
     print_WCETs();
@@ -294,6 +302,10 @@ void *Service_1_Servos(void *)
         #if (FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+        syslog(LOG_INFO, "S1 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
+        #endif
         if(servoMoveCount>ENCRYPTION_KEY_LENGTH*8){
             if(generateNewKey!=TRUE){
                 continue;
@@ -306,6 +318,10 @@ void *Service_1_Servos(void *)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
         getElapsedTime(1, releaseTime, completionTime);
         #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&completionTime);
+        syslog(LOG_INFO, "S1 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -317,9 +333,13 @@ void *Service_2_Periferal(void *)
     printf("external periferal service started\t");
     uint16_t readData;
     numRunPeriferal = 0;
-    #if (FINDING_WCET == TRUE)
+    #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
+    #if (LOGGING == TRUE)
+    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+    syslog(LOG_INFO, "S2 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
+    #endif
 
     while(!abort_service[2])
     {
@@ -357,6 +377,10 @@ void *Service_2_Periferal(void *)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
         getElapsedTime(2, releaseTime, completionTime);
         #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&completionTime);
+        syslog(LOG_INFO, "S2 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
+        #endif
         sem_post(&task_sems[0]);
     }
 
@@ -367,10 +391,13 @@ void *Service_2_Periferal(void *)
 void *Service_3_Encrypt(void *) 
 {
     printf("Encryption service started\t");
-    #if (FINDING_WCET == TRUE)
+    #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
-
+    #if (LOGGING == TRUE)
+    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+    syslog(LOG_INFO, "S3 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
+    #endif
     while(!abort_service[3])
     {
         sem_wait(&task_sems[3]);
@@ -407,6 +434,10 @@ void *Service_3_Encrypt(void *)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
         getElapsedTime(3, releaseTime, completionTime);
         #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&completionTime);
+        syslog(LOG_INFO, "S3 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -417,10 +448,13 @@ void *Service_4_Keygen(void *)
 {
     uint8_t lastComputedKeygenIndex;
     printf("Keygen service started\t");
-    #if (FINDING_WCET == TRUE)
+    #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
-
+    #if (LOGGING == TRUE)
+    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+    syslog(LOG_INFO, "S4 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
+    #endif
     while(!abort_service[4])
     {
         sem_wait(&task_sems[4]);
@@ -441,6 +475,10 @@ void *Service_4_Keygen(void *)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
         getElapsedTime(4, releaseTime, completionTime);
         #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&completionTime);
+        syslog(LOG_INFO, "S4 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -455,9 +493,13 @@ void *Service_5_UART(void *)
     uint16_t pendingServoStartIndex = 0;
     uint16_t pendingServoBitLen = 0;
     #endif
-    #if (FINDING_WCET == TRUE)
+    #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
+    #if (LOGGING == TRUE)
+    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+    syslog(LOG_INFO, "S5 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
+    #endif
 
     while(!abort_service[5])
     {
@@ -543,6 +585,10 @@ void *Service_5_UART(void *)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
         getElapsedTime(5, releaseTime, completionTime);
         #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&completionTime);
+        syslog(LOG_INFO, "S5 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
+        #endif
     }
 
     pthread_exit((void *)0);
@@ -551,7 +597,7 @@ void *Service_5_UART(void *)
 // terminal service
 void *Service_6_Terminal(void *){
     printf("Terminal service started\t");
-    #if (FINDING_WCET == TRUE)
+    #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
 
@@ -559,6 +605,10 @@ void *Service_6_Terminal(void *){
     {
         #if (FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+        syslog(LOG_INFO, "S4 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
         #if (RPI_TYPE == TYPE_SENDER)
         if(terminal_read_char()!=0){
@@ -572,6 +622,10 @@ void *Service_6_Terminal(void *){
         #if (FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
         getElapsedTime(6, releaseTime, completionTime);
+        #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&completionTime);
+        syslog(LOG_INFO, "S6 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
         #endif
     }
 

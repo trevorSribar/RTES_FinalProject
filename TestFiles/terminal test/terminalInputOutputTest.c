@@ -2,6 +2,7 @@
 
 #include "generic.h"
 #include "terminal.h"
+#include "encryption.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -10,7 +11,7 @@
 #include <time.h>
 
 #define TERMINAL_POLL_PERIOD_NS 30000000L
-#define LL_PRINT_PERIOD_SEC 30
+#define TERMINAL_FLUSH_PERIOD_SEC 15L
 
 static sentenceLinkedList_t *addHead = NULL;
 static sentenceLinkedList_t *encryptHead = NULL;
@@ -29,40 +30,19 @@ static inline void add_ns_to_timespec(struct timespec *ts, long ns)
 	}
 }
 
-static void dump_ll_snapshot(void)
+static void flush_linked_list(void)
 {
-	uint16_t toEncrypt = sentenceLL_getNumSentencesToEncrypt();
-	uint16_t toSend = sentenceLL_getNumSentencesToSend();
-	uint16_t totalNodes = toEncrypt + toSend;
-
-	printf("\n================ LL Snapshot ================\n");
-	printf("addHead:    %p\n", (void *)addHead);
-	printf("encryptHead:%p\n", (void *)encryptHead);
-	printf("sendHead:   %p\n", (void *)sendHead);
-	printf("toEncrypt=%u, toSend=%u, totalPopulatedNodes=%u\n",
-		   toEncrypt,
-		   toSend,
-		   totalNodes);
-
-	sentenceLinkedList_t *node = sendHead;
-	for (uint16_t i = 0; i < totalNodes; i++)
+	char dummyNonce[ENCRYPTION_NONCE_LENGTH] = {0};
+	while (sentenceLL_getNumSentencesToEncrypt() > 0)
 	{
-		if (node == NULL)
-		{
-			printf("node[%u]: NULL reached early\n", i);
-			break;
-		}
-
-		printf("node[%u] @ %p\n", i, (void *)node);
-		printf("  numCharacters: %u\n", node->numCharacters);
-		printf("  sentence: ");
-		fwrite(node->sentence, 1, node->numCharacters, stdout);
-		printf("\n");
-
-		printf("  next: %p\n", (void *)node->next);
-		node = node->next;
+		(void)sentenceLL_encryptedSentence(&encryptHead, dummyNonce);
 	}
-	printf("=============================================\n");
+
+	while (sentenceLL_getNumSentencesToSend() > 0)
+	{
+		char dummyByte = 0;
+		terminal_printDecryptedSentence(&sendHead);
+	}
 }
 
 static void *terminal_reader_thread(void *threadp)
@@ -96,7 +76,7 @@ static void signal_handler(int signum)
 
 int main(void)
 {
-	printf("terminalTest: polling terminal every 30ms and dumping LL every 30s\n");
+	printf("terminalTest: polling terminal every 15s and flushing LL on a loop\n");
 	printf("Type characters and press Enter to add a sentence. Ctrl+C to exit.\n");
 
 	signal(SIGINT, signal_handler);
@@ -124,14 +104,32 @@ int main(void)
 		return EXIT_FAILURE;
 	}
 
+	struct timespec nextFlush;
+	clock_gettime(CLOCK_MONOTONIC, &nextFlush);
+	nextFlush.tv_sec += TERMINAL_FLUSH_PERIOD_SEC;
+
 	while (!stopRequested)
 	{
-		sleep(LL_PRINT_PERIOD_SEC);
+		struct timespec pollDelay = {0, TERMINAL_POLL_PERIOD_NS};
+		(void)nanosleep(&pollDelay, NULL);
 
-		pthread_mutex_lock(&llMutex);
-		dump_ll_snapshot();
-		pthread_mutex_unlock(&llMutex);
+		struct timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		if ((now.tv_sec > nextFlush.tv_sec) ||
+			((now.tv_sec == nextFlush.tv_sec) && (now.tv_nsec >= nextFlush.tv_nsec)))
+		{
+			pthread_mutex_lock(&llMutex);
+			flush_linked_list();
+			pthread_mutex_unlock(&llMutex);
+
+			nextFlush = now;
+			nextFlush.tv_sec += TERMINAL_FLUSH_PERIOD_SEC;
+		}
 	}
+
+	pthread_mutex_lock(&llMutex);
+	flush_linked_list();
+	pthread_mutex_unlock(&llMutex);
 
 	pthread_join(readerThread, NULL);
 	printf("terminalTest exiting\n");

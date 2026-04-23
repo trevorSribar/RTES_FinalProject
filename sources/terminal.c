@@ -41,7 +41,7 @@ void terminal_printDecryptedSentence(sentenceLinkedList_t **tail){
     char nonce[ENCRYPTION_NONCE_LENGTH];
     sentenceLL_getSentence(tail, old_sentence, &old_sentence_length, nonce);
 
-    encryption_decryptData(old_sentence, old_sentence_length, encryption_getNonceAddress(), nonce);
+    encryption_decryptData(old_sentence, old_sentence_length, nonce);
 
     printf("Printing decrypted sentence: \n");
     for(uint8_t i = 0; i < old_sentence_length; i++){

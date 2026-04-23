@@ -70,7 +70,7 @@ char *uart_receive()
 
   buffer[0] = serialGetchar(serialPort);
 
-  if (dataFlag && currentDataType == 0x14)
+  if (currentDataType == 0x14) // changed from  dataFlag && currentDataType == 0x14
   {
     switch (buffer[0])
     {
@@ -92,6 +92,7 @@ char *uart_receive()
 
   buffer[1] = serialGetchar(serialPort);
   int strLen = (int)buffer[1];
+  dataCount = strLen;
 
   for (int i = strLen - dataCount + 2; i < strLen + 2; i++)
   {

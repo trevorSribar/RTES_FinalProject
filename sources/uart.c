@@ -1,3 +1,7 @@
+// Enables bidirectional UART communication between the sending and receiving Raspberry Pis
+// Kenneth Alcineus
+// 4/18/2026
+
 #include "uart.h"
 
 int programFlag = 1;
@@ -95,6 +99,18 @@ char *uart_receive()
   serialPutchar(serialPort, currentDataType); //ack to sender from receiver
 
   return buffer;
+}
+
+int uart_str_len()
+{
+  if (dataCount > 0)
+  {
+    return (int)buffer[1];
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 void sender_test_set()

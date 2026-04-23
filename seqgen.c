@@ -55,7 +55,8 @@
 #define NS_PER_MS               1000000
 #define NS_PER_SEC              (NS_PER_MS * 1000)
 #define SERVO_MOVE_TIME         (900*NS_PER_MS)
-#define HALF_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/2)
+#define SERVO_MOVE_DIVISOR      5
+#define DIVIDED_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/SERVO_MOVE_DIVISOR)
 #define TIMER_RELATIVE 0
 void echo_UART();
 
@@ -222,22 +223,17 @@ void main(void)
         sem_post(&task_sems[4]);
         sem_post(&task_sems[5]);
 
-        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
-        if(startIterationTime.tv_nsec>NS_PER_SEC){
-            startIterationTime.tv_nsec-=NS_PER_SEC;
-            startIterationTime.tv_sec++;
-        }
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+        for(int i =0; i < SERVO_MOVE_DIVISOR; i++){
+            startIterationTime.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
+            if(startIterationTime.tv_nsec>NS_PER_SEC){
+                startIterationTime.tv_nsec-=NS_PER_SEC;
+                startIterationTime.tv_sec++;
+            }
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
 
-        sem_post(&task_sems[3]);
-        sem_post(&task_sems[5]);
-
-        startIterationTime.tv_nsec += HALF_SERVO_MOVE_TIME;
-        if(startIterationTime.tv_nsec>NS_PER_SEC){
-            startIterationTime.tv_nsec-=NS_PER_SEC;
-            startIterationTime.tv_sec++;
+            sem_post(&task_sems[3]);
+            sem_post(&task_sems[5]);
         }
-        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
 
         sem_post(&task_sems[2]);
         sem_wait(&task_sems[0]);

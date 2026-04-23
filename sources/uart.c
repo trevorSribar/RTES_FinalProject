@@ -6,7 +6,6 @@
 
 int programFlag = 1;
 int dataFlag = 0;
-int dataCount = 0;
 char currentDataType = 0x14;
 int serialPort;
 char buffer[BUFFER_SIZE + 2];
@@ -31,7 +30,6 @@ void uart_send(char *s, int s_len, int s_type)
         for (int i = 0; i < s_len; i++)
         {
           serialPutchar(serialPort, s[i]);
-          dataCount++;
         }
         return;
       }
@@ -55,7 +53,6 @@ void uart_send(char *s, int s_len, int s_type)
   for (int i = 0; i < s_len; i++)
   {
     serialPutchar(serialPort, s[i]);
-    dataCount++;
   }
 }
 
@@ -84,7 +81,6 @@ char *uart_receive()
         }
       default: //in any other situation don't receive string - perform a serial flush
         serialFlush(serialPort);
-        dataCount = 0;
         dataFlag = 0;
         return buffer;
     }
@@ -92,9 +88,9 @@ char *uart_receive()
 
   buffer[1] = serialGetchar(serialPort);
   int strLen = (int)buffer[1];
-  dataCount = strLen;
+  int dataCount = strLen;
 
-  for (int i = strLen - dataCount + 2; i < strLen + 2; i++)
+  for (int i = 2; i < strLen + 2; i++)
   {
     while (!serialDataAvail(serialPort)) {}
     
@@ -104,7 +100,6 @@ char *uart_receive()
     if (dataCount == 0)
     {
       serialFlush(serialPort);
-      dataCount = 0;
       dataFlag = 0;
       break;
     }
@@ -122,7 +117,7 @@ char *uart_receive()
 
 int uart_str_len()
 {
-  if (dataCount > 0)
+  if (currentDataType != 0x14)
   {
     return (int)buffer[1];
   }

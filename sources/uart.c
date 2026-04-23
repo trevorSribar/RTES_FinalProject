@@ -80,7 +80,6 @@ char *uart_receive()
         if (serialDataAvail(serialPort))
         {
           currentDataType = buffer[0];
-          buffer[1] = (char)serialGetchar(serialPort);
           break;
         }
       default: //in any other situation don't receive string - perform a serial flush

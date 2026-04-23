@@ -68,8 +68,7 @@ char *uart_receive()
 
   memset(buffer, '\0', sizeof(buffer));
   buffer[0] = serialGetchar(serialPort);
-  printf("data type\n\r");//remvoe this
-  printf("%d",buffer[0]);//remvoe this
+  printf("data type%d\n\r",buffer[0]);//remvoe this
 
   if (currentDataType == 0x14) // changed from  dataFlag && currentDataType == 0x14
   {
@@ -91,8 +90,7 @@ char *uart_receive()
   }
 
   buffer[1] = serialGetchar(serialPort);
-  printf("num inputs\n\r");//remvoe this
-  printf("%d",buffer[1]);//remvoe this
+  printf("num inputs%d\n\r",buffer[1]);//remvoe this
   int strLen = (int)buffer[1];
   int dataCount = strLen;
 

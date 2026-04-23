@@ -61,7 +61,7 @@ char *uart_receive()
   if(serialDataAvail(serialPort)){ //remvoe this
     printf("there is data avalable\n\r");
   }
-  if (!serialDataAvail(serialPort) && dataFlag == 0)
+  if (!serialDataAvail(serialPort))
   {
     return NULL;
   }

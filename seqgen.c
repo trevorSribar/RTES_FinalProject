@@ -340,7 +340,7 @@ void *Service_2_Periferal(void *)
         laser_on();
         int result = clock_nanosleep(CLOCK_MONOTONIC, TIMER_RELATIVE, &(struct timespec){.tv_sec = 0, .tv_nsec = LASER_TIME_ON*NS_PER_USEC}, NULL);
         if (result != 0) {
-            perror("Error in clock_nanosleep: %lu", result);
+            perror("Error in clock_nanosleep");
         }
         laser_off();
         #else

@@ -525,6 +525,7 @@ void *Service_5_UART(void *)
             if(sentenceToReceive!=NULL){
                 i = 0;
                 memcpy(addHead->sentenceNonce, &sentenceToReceive[2], ENCRYPTION_NONCE_LENGTH);
+                memcpy(addHead->sentenceNonce,sentenceToReceive[2],ENCRYPTION_NONCE_LENGTH);
                 sentenceLL_addSentence(&addHead, &(sentenceToReceive[2+ENCRYPTION_NONCE_LENGTH]), sentenceToReceive[1]);
             }
         }

@@ -81,6 +81,7 @@ uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
 uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
 uint8_t generateNewKey = FALSE;
 uint16_t numRunPeriferal = 0;
+uint8_t currentKeygenIndexToSend = 0;
 #if (RPI_TYPE == TYPE_RECEIVOR)
 uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 #endif
@@ -378,12 +379,15 @@ void *Service_4_Keygen(void)
 void *Service_5_UART(void) 
 {
     printf("UART service started\t");
-
+    uint8_t currentKeygenIndex = 0;
     while(!abort_service[5])
     {
         sem_wait(&task_sems[5]);
         #if (RPI_TYPE == TYPE_SENDER)
-
+        if((numRunPeriferal-(8*currentKeygenIndex))%8==0){
+            currentKeygenIndex++; // this means I need to send the new index I have gotten!
+            
+        }
         #else
         #endif
     }

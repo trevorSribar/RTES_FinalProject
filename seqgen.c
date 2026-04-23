@@ -146,28 +146,6 @@ void main(void)
     calibrate_ads1115();
     #endif
 
-    // remove this, stuff added to test send/receive
-    echo_UART();
-    uint8_t length = 36;
-    #if (RPI_TYPE == TYPE_SENDER)
-    char sentence[36] = ("This is a sentence that we will send");
-    for(uint8_t i = 0; i < length; i++){
-        printf("%c",sentence[i]);
-    }
-    uart_send(sentence, length, UART_SENDER_SENTENCE_ENCRYPTED);
-    #else
-    char sentence[36];
-    char *tempSentence;
-    tempSentence = uart_receive();
-    while(tempSentence==NULL){
-        tempSentence = uart_receive();
-    }
-    for(uint8_t i = 2; i < length+2; i++){
-        printf("%c",tempSentence[i]);
-    }
-    #endif
-    return;
-
     // configuring the main thread
     mainpid=getpid();
     rt_max_prio = sched_get_priority_max(SCHED_FIFO);
@@ -481,6 +459,11 @@ void *Service_4_Keygen(void *)
 void *Service_5_UART(void *) 
 {
     printf("UART service started\t");
+    #if (RPI_TYPE == TYPE_SENDER)
+    uint8_t waitingForServoReply = FALSE;
+    uint16_t pendingServoStartIndex = 0;
+    uint16_t pendingServoBitLen = 0;
+    #endif
     #if (FINDING_WCET == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
@@ -492,24 +475,31 @@ void *Service_5_UART(void *)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
         #if (RPI_TYPE == TYPE_SENDER)
-        if(numRunPeriferal - 8 * keygenIndex >= 8){ // if we need to send keygen
+        if(waitingForServoReply == TRUE){
+            char *receiverServoBasisData;
+            receiverServoBasisData = uart_receive();
+            if(receiverServoBasisData != NULL && receiverServoBasisData[0] == (char)(0x11 + UART_SENDER_SERVO_DATA)){
+                uint16_t rxLen = (uint8_t)receiverServoBasisData[1];
+                uint16_t copyLen = (rxLen < pendingServoBitLen) ? rxLen : pendingServoBitLen;
+                for(uint16_t i = 0; i < copyLen; i++){
+                    communicatedServoBasis[pendingServoStartIndex + i] = receiverServoBasisData[i+2];
+                }
+                keygenIndex += copyLen / 8;
+                waitingForServoReply = FALSE;
+            }
+        }
+        else if(numRunPeriferal - 8 * keygenIndex >= 8){ // if we need to send keygen
             uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8;
-            char servoPositionBasisesToSend[numServoDataToSend*8];
-            for(uint16_t i = 0; i < numServoDataToSend*8; i++){
+            uint16_t servoBitLen = numServoDataToSend * 8;
+            char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8];
+            for(uint16_t i = 0; i < servoBitLen; i++){
                 servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
             }
             // send the current servo data
-            uart_send(servoPositionBasisesToSend, numServoDataToSend*8, UART_SENDER_SERVO_DATA);
-            // receive the current servo data
-            char *receiverServoBasisData;
-            receiverServoBasisData = uart_receive();
-            while(receiverServoBasisData==NULL){
-                receiverServoBasisData = uart_receive();
-            }
-            for(uint16_t i = 0; i < numServoDataToSend*8; i++){
-                communicatedServoBasis[i + 8 * keygenIndex] = receiverServoBasisData[i+2];
-            }
-            keygenIndex += numServoDataToSend;
+            uart_send(servoPositionBasisesToSend, servoBitLen, UART_SENDER_SERVO_DATA);
+            pendingServoStartIndex = 8 * keygenIndex;
+            pendingServoBitLen = servoBitLen;
+            waitingForServoReply = TRUE;
         }
         while(sentenceLL_getNumSentencesToSend()>0){
             char bytesToSend[ENCRYPTION_NONCE_LENGTH+SENTENCELL_SENTENCE_SIZE];
@@ -522,23 +512,23 @@ void *Service_5_UART(void *)
         }
         #else
         if(numRunPeriferal - 8 * keygenIndex >= 8){ // if we need to send keygen
-            uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8;
-            char servoPositionBasisesToSend[numServoDataToSend*8];
-            for(uint16_t i = 0; i < numServoDataToSend*8; i++){
-                servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
-            }
             char *receiverServoBasisData;
             receiverServoBasisData = uart_receive();
-            // receive the current servo data
-            while(receiverServoBasisData==NULL){
-                receiverServoBasisData = uart_receive();
+            if(receiverServoBasisData != NULL && receiverServoBasisData[0] == (char)(0x11 + UART_SENDER_SERVO_DATA)){
+                uint16_t rxServoBitLen = (uint8_t)receiverServoBasisData[1];
+                uint16_t localServoBitLen = ((numRunPeriferal - 8 * keygenIndex)/8) * 8;
+                uint16_t servoBitLenToProcess = (rxServoBitLen < localServoBitLen) ? rxServoBitLen : localServoBitLen;
+                char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8];
+                for(uint16_t i = 0; i < servoBitLenToProcess; i++){
+                    servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
+                }
+                // send the current servo data
+                uart_send(servoPositionBasisesToSend, servoBitLenToProcess, UART_SENDER_SERVO_DATA);
+                for(uint16_t i = 0; i < servoBitLenToProcess; i++){
+                    communicatedServoBasis[i + 8 * keygenIndex] = receiverServoBasisData[i+2];
+                }
+                keygenIndex += servoBitLenToProcess / 8;
             }
-            // send the current servo data
-            uart_send(servoPositionBasisesToSend, numServoDataToSend*8, UART_SENDER_SERVO_DATA);
-            for(uint16_t i = 0; i < numServoDataToSend*8; i++){
-                communicatedServoBasis[i + 8 * keygenIndex] = receiverServoBasisData[i+2];
-            }
-            keygenIndex += numServoDataToSend;
         }
         for(uint8_t i = 0; i < UART_NUM_CHECK_EMPTY_BE_SURE; i++){
             char *sentenceToReceive;

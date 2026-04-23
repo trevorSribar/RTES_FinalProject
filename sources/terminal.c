@@ -35,13 +35,11 @@ int terminal_read_char()
 	return 0;
 }
 
-void terminal_printDecryptedSentence(sentenceLinkedList_t **tail){
+void terminal_print_and_delete_DecryptedSentence(sentenceLinkedList_t **tail){
     char *old_sentence;
     uint8_t old_sentence_length;
     char nonce[ENCRYPTION_NONCE_LENGTH];
-    sentenceLL_getSentence(tail, old_sentence, &old_sentence_length, nonce);
-
-    encryption_decryptData(old_sentence, old_sentence_length, nonce);
+    sentenceLL_getSentence(tail, old_sentence, &old_sentence_length);
 
     printf("Printing decrypted sentence: \n");
     for(uint8_t i = 0; i < old_sentence_length; i++){

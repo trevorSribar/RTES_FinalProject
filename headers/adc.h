@@ -1,3 +1,7 @@
+// Exposes the functions to interact with the ADS1115 ADC and obtain readings
+// Kenneth Alcineus
+// 4/18/2026
+
 #include "ads1115.h"
 #include "generic.h"
 

@@ -2,19 +2,21 @@
 
 int laser_state = 0;
 
-void init_laser(void)
+void init_laser_send(void)
 {
     wiringPiSetupGpio();
     pinMode(5, OUTPUT);
     pullUpDnControl(5, PUD_DOWN);
-    if (PI_TYPE == 1)
-    {
-        pinMode(17, OUTPUT);
-    }
-    else
-    {
-        pinMode(17, INPUT);
-    }
+    pinMode(17, OUTPUT);
+    pullUpDnControl(17, PUD_DOWN);
+}
+
+void init_laser_receive(void)
+{
+    wiringPiSetupGpio();
+    pinMode(5, OUTPUT);
+    pullUpDnControl(5, PUD_DOWN);
+    pinMode(17, INPUT);
     pullUpDnControl(17, PUD_DOWN);
 }
 
@@ -27,18 +29,12 @@ void laser_on(void)
 {
     laser_state = 1;
     digitalWrite(5, HIGH);
-    if (PI_TYPE == 1)
-    {
-        digitalWrite(17, HIGH);
-    }
+    digitalWrite(17, HIGH);
 }
 
 void laser_off(void)
 {
     laser_state = 0;
     digitalWrite(5, LOW);
-    if (PI_TYPE == 1)
-    {
-        digitalWrite(17, LOW);
-    }
+    digitalWrite(17, LOW);
 }

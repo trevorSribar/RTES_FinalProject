@@ -57,9 +57,9 @@
 #define SERVO_MOVE_TIME         (425*NS_PER_MS)
 #define HALF_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/2)
 #define TIMER_RELATIVE 0
+void echo_UART();
 
 // added code for finding WCET
-void echo_UART();
 #define FINDING_WCET FALSE
 #if (FINDING_WCET == TRUE)
 #define USEC_PER_SEC 1000000

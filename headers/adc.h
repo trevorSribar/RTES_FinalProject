@@ -1,13 +1,17 @@
-#include "ads1x1x.h"
+#include "ads1115.h"
 #include "generic.h"
 
-#define DEVICE_ID 0xFF //to be determined through actual testing
+#define DEVICE_ID 0x48
+#define PIN_BASE 200
 
-//Initialize the ADS1115 device
+//Initialize the ADS1115 device 
 void init_ads1115(void);
 
 //Calibrate the ADS1115 device to environment
 void calibrate_ads1115(void);
 
-//Capture <b_len> ADS1115 inputs and return a buffer containing them
-uint16_t *capture_ads1115(int b_len);
+//Capture <b_len> ADS1115 readings into a buffer containing them
+void capture_ads1115(uint16_t **buffer, int b_len);
+
+//Capture a single ADS1115 reading and return it
+uint16_t read_ads1115(void);

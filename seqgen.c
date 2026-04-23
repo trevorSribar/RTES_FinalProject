@@ -336,16 +336,16 @@ void *Service_2_Periferal(void *)
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
-    #if (LOGGING == TRUE)
-    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
-    syslog(LOG_INFO, "S2 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
-    #endif
 
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
         #if (FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+        syslog(LOG_INFO, "S2 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
         if(numRunPeriferal>=ENCRYPTION_KEY_LENGTH*8){
             if(generateNewKey!=TRUE){
@@ -394,10 +394,6 @@ void *Service_3_Encrypt(void *)
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
-    #if (LOGGING == TRUE)
-    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
-    syslog(LOG_INFO, "S3 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
-    #endif
     while(!abort_service[3])
     {
         sem_wait(&task_sems[3]);
@@ -406,6 +402,10 @@ void *Service_3_Encrypt(void *)
         #endif
         // if we have any data to encrypt
         while(sentenceLL_getNumSentencesToEncrypt()!=0){
+            #if (LOGGING == TRUE)
+            clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+            syslog(LOG_INFO, "S3 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
+            #endif
             #if (RPI_TYPE == TYPE_SENDER) // encrypting data
             // create a new nonce
             encryption_updateNonce();
@@ -451,15 +451,15 @@ void *Service_4_Keygen(void *)
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
-    #if (LOGGING == TRUE)
-    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
-    syslog(LOG_INFO, "S4 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
-    #endif
     while(!abort_service[4])
     {
         sem_wait(&task_sems[4]);
         #if (FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+        syslog(LOG_INFO, "S4 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
         // function changes based on whether we are the sender or receiver pi
         if(keygenIndex>lastComputedKeygenIndex){
@@ -496,16 +496,16 @@ void *Service_5_UART(void *)
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         struct timespec releaseTime, completionTime;
         #endif
-    #if (LOGGING == TRUE)
-    clock_gettime(CLOCK_MONOTONIC,&releaseTime);
-    syslog(LOG_INFO, "S5 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
-    #endif
 
     while(!abort_service[5])
     {
         sem_wait(&task_sems[5]);
         #if (FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
+        syslog(LOG_INFO, "S5 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
         #if (RPI_TYPE == TYPE_SENDER)
         if(waitingForServoReply == TRUE){
@@ -608,7 +608,7 @@ void *Service_6_Terminal(void *){
         #endif
         #if (LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC,&releaseTime);
-        syslog(LOG_INFO, "S4 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
+        syslog(LOG_INFO, "S6 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
         #if (RPI_TYPE == TYPE_SENDER)
         if(terminal_read_char()!=0){

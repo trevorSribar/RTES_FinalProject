@@ -126,6 +126,7 @@ void main(void)
     #else
     init_laser_receive();
     init_ads1115();
+    calibrate_ads1115();
     #endif
 
 
@@ -248,6 +249,12 @@ void *Service_2_Periferal(void)
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
+        if(numRun>ENCRYPTION_KEY_LENGTH*8){
+            if(generateNewKey!=TRUE){
+                continue;
+            }
+            numRun = 0;
+        }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
         nanosleep(LASER_TIME_ON); // add a define for this
@@ -256,9 +263,13 @@ void *Service_2_Periferal(void)
         while(get_laser_state_gpio==0);
         readData = read_ads1115();
         if(readData > ADC_PHOTOSENSOR_READ_HIGH){
-
+            sensedData[numRun] = 1;
+        }
+        else{
+            sensedData[numRun] = 0;
         }
         #endif
+        numRun++;
     }
 
     pthread_exit((void *)0);
@@ -274,12 +285,29 @@ void *Service_3_Encrypt(void)
         sem_wait(&task_sems[3]);
         // if we have any data to encrypt
         while(sentenceLL_getNumSentencesToEncrypt()!=0){
+            #if (RPI_TYPE == TYPE_SENDER) // encrypting data
             // create a new nonce
             encryption_updateNonce();
             // encrypt the data where we need to
-            encryption_encryptData(encryptHead->sentence, encryptHead->numCharacters);
+            if(encryption_encryptData(encryptHead->sentence, encryptHead->numCharacters)==ENCRYPTION_ERROR){
+                perror("Encryption Error\n");
+                break;
+            }
             // say that we have encrypted the data
-            sentenceLL_encryptedSentence(&encryptHead,encryption_getNonceAddress());
+            if(sentenceLL_encryptedSentence(&encryptHead,encryption_getNonceAddress())==SENTENCELL_ERROR) {
+                perror("Sentence LL Encryption Error\n");
+                break;
+            }
+            #else // decrypting data
+            if(encryption_decryptData(sendHead->sentence, sendHead->numCharacters, sendHead->sentenceNonce)==ENCRYPTION_ERROR){
+                printf("Decryption Error\n");
+                break;
+            }
+            if(sentenceLL_removeSentence(&sendHead)==SENTENCELL_ERROR) {
+                perror("Sentence LL Decryption Error\n");
+                break;
+            }
+            #endif
         }
     }
 

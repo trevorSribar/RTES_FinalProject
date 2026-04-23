@@ -297,7 +297,7 @@ void *Service_2_Periferal(void *)
         }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
-        nanosleep((struct timespec){.tv_sec = 0, .tv_nsec = LASER_TIME_ON*NS_PER_USEC}, NULL); // add a define for this
+        nanosleep(LASER_TIME_ON*NS_PER_USEC); // add a define for this
         laser_off();
         #else
         while(get_laser_state_gpio==0);

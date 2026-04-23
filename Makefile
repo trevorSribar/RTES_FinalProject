@@ -4,7 +4,7 @@ CC=gcc
 
 CDEFS=
 CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
-LIBS= -lrt -lmbedcrypto
+LIBS= -lrt -lmbedcrypto -lwiringPi
 
 HFILES= $(wildcard headers/*.h)
 CFILES= seqgen.c $(wildcard sources/*.c)

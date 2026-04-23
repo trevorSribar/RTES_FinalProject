@@ -36,9 +36,8 @@ int terminal_read_char()
 }
 
 void terminal_print_and_delete_DecryptedSentence(sentenceLinkedList_t **tail){
-    char *old_sentence;
+    char old_sentence[SENTENCELL_SENTENCE_SIZE];
     uint8_t old_sentence_length;
-    char nonce[ENCRYPTION_NONCE_LENGTH];
     sentenceLL_getSentence(tail, old_sentence, &old_sentence_length);
 
     printf("Printing decrypted sentence: \n");

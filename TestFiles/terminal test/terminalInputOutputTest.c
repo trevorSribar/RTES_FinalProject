@@ -41,7 +41,7 @@ static void flush_linked_list(void)
 	while (sentenceLL_getNumSentencesToSend() > 0)
 	{
 		char dummyByte = 0;
-		terminal_printDecryptedSentence(&sendHead);
+		terminal_print_and_delete_DecryptedSentence(&sendHead);
 	}
 }
 

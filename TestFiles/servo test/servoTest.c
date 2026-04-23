@@ -191,6 +191,7 @@ void *Service_1_Servos(void *threadp)
             servoMoveCount++;
             sleep(1);
         }
+        // servo_set_angle(0); // used to rest servo to 0 position
         abort_service[1]=TRUE;
     }
     printf("servos ending\n\r");

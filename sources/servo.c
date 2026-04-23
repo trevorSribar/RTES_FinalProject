@@ -19,10 +19,3 @@ void servo_init(void){
 void servo_set_angle(uint8_t position){
     pwmWrite(SERVO_PIN, position_arr[position]);
 }
-
-// sets the servo to a random position, and returns the position it was set to
-uint8_t servo_set_angle_random(void){
-    uint8_t position = rand()%NUM_POSITIONS;
-    servo_set_angle(position);
-    return position;
-}

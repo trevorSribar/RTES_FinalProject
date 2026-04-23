@@ -407,8 +407,8 @@ void *Service_3_Encrypt(void *)
                 printf("Decryption Error\n");
                 break;
             }
-            if(sentenceLL_removeSentence(&sendHead)==SENTENCELL_ERROR) {
-                perror("Sentence LL Decryption Error\n");
+            if(sentenceLL_encryptedSentence(&encryptHead,sendHead->sentenceNonce)==SENTENCELL_ERROR) {
+                perror("Sentence LL Encryption Error\n");
                 break;
             }
             #endif

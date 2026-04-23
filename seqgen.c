@@ -161,7 +161,7 @@ void main(void)
     while(tempSentence==NULL){
         tempSentence = uart_receive();
     }
-    for(uint8_t i = 0; i < length; i++){
+    for(uint8_t i = 2; i < length+2; i++){
         printf("%c",tempSentence[i]);
     }
     #endif

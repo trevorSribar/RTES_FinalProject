@@ -386,6 +386,7 @@ void *Service_3_Encrypt(void *)
         }
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #endif
         #if (FINDING_WCET == TRUE)
         getElapsedTime(3, releaseTime, completionTime);
         #endif

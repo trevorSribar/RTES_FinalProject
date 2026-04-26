@@ -187,7 +187,6 @@ void main(void)
     #else
     echo_uartReceiver();
     #endif
-    echo_UART();
     #if (FINDING_WCET == TRUE)
     for(int i = 0; i<NUM_TIMES_TEST; i++){
     #else

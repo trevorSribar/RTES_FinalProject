@@ -66,6 +66,26 @@ uint8_t uart_receive(char *sentence, uint8_t *size)
   return dataType;
 }
 
+// must be called after running the receiver, otherwise the reveiver will not be looking for it
+void echo_uartSender(){
+  // send the wait for the echo
+  serialPutchar(serialPort, 0xFF);
+  while(!serialDataAvail(serialPort));
+
+  // pull the FF
+  serialGetchar(serialPort);
+}
+
+// must be called before running the sender, otherwise it will not be looking for the sender echo
+void echo_uartReceiver(){
+  // wait then send the echo
+  while(!serialDataAvail(serialPort));
+  serialPutchar(serialPort, 0xFF);
+
+  // pull the FF
+  serialGetchar(serialPort);
+}
+
 // initializes UART
 int initialize_uart()
 {

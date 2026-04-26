@@ -24,3 +24,11 @@ int initialize_uart();
 
 //close UART connection through WiringPi
 void close_uart();
+
+// syncing echo functions to sync processors
+
+// must be called after running the receiver, otherwise the reveiver will not be looking for it
+void echo_uartSender();
+
+// must be called before running the sender, otherwise it will not be looking for the sender echo
+void echo_uartReceiver();

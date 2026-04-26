@@ -89,7 +89,6 @@ uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 
 
 // function prototypes
-void echo_UART();
 uint8_t init_all();
 void *Service_1_Servos(void *);
 void *Service_2_Periferal(void *);
@@ -182,9 +181,21 @@ void main(void)
     printf("\nStarting scheduler\n");
     #if (FINDING_WCET == TRUE)
     printf("Finding WCETs, scheduler %u times\n", NUM_TIMES_TEST);
+    #endif
+    #if (RPI_TYPE == TYPE_SENDER)
+    echo_uartSender();
+    #else
+    echo_uartReceiver();
+    #endif
     echo_UART();
+    #if (FINDING_WCET == TRUE)
     for(int i = 0; i<NUM_TIMES_TEST; i++){
+    #else
+    while(1){
+    #endif
+        #if(LOGGING == TRUE || FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC,&start_time);
+        #endif
         #if (LOGGING == TRUE)
         syslog(LOG_INFO, "Scheduler start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
         #endif
@@ -212,35 +223,8 @@ void main(void)
         #endif
         sem_wait(&task_sems[0]);
     }
+    #if (FINDING_WCET == TRUE)
     print_WCETs();
-    #else
-    echo_UART();
-    for(;;){
-        clock_gettime(CLOCK_MONOTONIC,&start_time);
-        sem_post(&task_sems[1]);
-        sem_post(&task_sems[3]);
-        sem_post(&task_sems[4]);
-        sem_post(&task_sems[5]);
-
-        for(uint8_t i =0; i < SERVO_MOVE_DIVISOR; i++){
-            start_time.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
-            if(start_time.tv_nsec>NS_PER_SEC){
-                start_time.tv_nsec-=NS_PER_SEC;
-                start_time.tv_sec++;
-            }
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &start_time, NULL);
-
-            sem_post(&task_sems[3]);
-            sem_post(&task_sems[5]);
-        }
-
-        sem_post(&task_sems[2]);
-        #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&start_time);
-        syslog(LOG_INFO, "Scheduler end:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
-        #endif
-        sem_wait(&task_sems[0]);
-    }
     #endif
 
     // joining threads and clearing semaphors
@@ -285,6 +269,7 @@ void *Service_1_Servos(void *)
         servoMoveCount++;
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #endif
         #if (FINDING_WCET == TRUE)
         getElapsedTime(1, releaseTime, completionTime);
         #endif
@@ -345,6 +330,7 @@ void *Service_2_Periferal(void *)
         numRunPeriferal++;
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #endif
         #if (FINDING_WCET == TRUE)
         getElapsedTime(2, releaseTime, completionTime);
         #endif
@@ -442,6 +428,7 @@ void *Service_4_Keygen(void *)
 
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #endif
         #if (FINDING_WCET == TRUE)
         getElapsedTime(4, releaseTime, completionTime);
         #endif
@@ -513,7 +500,7 @@ void *Service_5_UART(void *)
             length+=ENCRYPTION_NONCE_LENGTH;
 
             // send it
-            uart_send(bytesToSend, length, UART_SENDER_SENTENCE_ENCRYPTED);
+            uart_send(bytesToSend, length, UART_DATA_TYPE_SENTENCE);
             sentenceLL_removeSentence(&sendHead);
         }
 
@@ -563,6 +550,7 @@ void *Service_5_UART(void *)
 
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #endif
         #if (FINDING_WCET == TRUE)
         getElapsedTime(5, releaseTime, completionTime);
         #endif
@@ -604,6 +592,7 @@ void *Service_6_Terminal(void *){
 
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #endif
         #if (FINDING_WCET == TRUE)
         getElapsedTime(6, releaseTime, completionTime);
         #endif
@@ -642,33 +631,6 @@ uint8_t init_all(){
     init_laser_receive();
     init_ads1115();
     calibrate_ads1115();
-    #endif
-}
-
-// ensure that the RPis are echoing characters between each other over UART
-void echo_UART()
-{
-    printf("Running UART echo function...\n");
-    char *sentenceToReceive = NULL;
-
-    #if (RPI_TYPE == TYPE_SENDER)
-
-    uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
-    printf("UART echo: Sent a\n");
-    while (sentenceToReceive == NULL)
-    {
-        sentenceToReceive = uart_receive();
-    }
-    printf("UART echo: received char!\n");
-
-    #else
-
-    while (sentenceToReceive == NULL)
-    {
-        sentenceToReceive = uart_receive();
-    }
-    uart_send("a", 1, UART_SENDER_SENTENCE_UNENCRYPTED);
-
     #endif
 }
 

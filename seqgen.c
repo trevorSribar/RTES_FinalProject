@@ -207,8 +207,8 @@ void main(void)
 
         sem_post(&task_sems[2]);
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
-        syslog(LOG_INFO, "Scheduler end:\tsec=%lu\tnsec=%lu\n", startIterationTime.tv_sec, startIterationTime.tv_nsec);
+        clock_gettime(CLOCK_MONOTONIC,&start_time);
+        syslog(LOG_INFO, "Scheduler end:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
         #endif
         sem_wait(&task_sems[0]);
     }
@@ -216,19 +216,19 @@ void main(void)
     #else
     echo_UART();
     for(;;){
-        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
+        clock_gettime(CLOCK_MONOTONIC,&start_time);
         sem_post(&task_sems[1]);
         sem_post(&task_sems[3]);
         sem_post(&task_sems[4]);
         sem_post(&task_sems[5]);
 
         for(uint8_t i =0; i < SERVO_MOVE_DIVISOR; i++){
-            startIterationTime.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
-            if(startIterationTime.tv_nsec>NS_PER_SEC){
-                startIterationTime.tv_nsec-=NS_PER_SEC;
-                startIterationTime.tv_sec++;
+            start_time.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
+            if(start_time.tv_nsec>NS_PER_SEC){
+                start_time.tv_nsec-=NS_PER_SEC;
+                start_time.tv_sec++;
             }
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &start_time, NULL);
 
             sem_post(&task_sems[3]);
             sem_post(&task_sems[5]);
@@ -236,8 +236,8 @@ void main(void)
 
         sem_post(&task_sems[2]);
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
-        syslog(LOG_INFO, "Scheduler end:\tsec=%lu\tnsec=%lu\n", startIterationTime.tv_sec, startIterationTime.tv_nsec);
+        clock_gettime(CLOCK_MONOTONIC,&start_time);
+        syslog(LOG_INFO, "Scheduler end:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
         #endif
         sem_wait(&task_sems[0]);
     }

@@ -69,7 +69,7 @@ int initialize_uart()
 
   if (serialPort < 0)
   {
-    printf("Could not open serial device\n");
+    perror("UART init: Could not open serial device\n");
     syslog(LOG_PERROR, "Could not open serial device\n");
     return 1;
   }

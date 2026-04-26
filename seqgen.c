@@ -618,11 +618,10 @@ void *Service_6_Terminal(void *){
 // initalizes all external files
 uint8_t init_all(){
     // initalizing other files
-    if (wiringPiSetup() == -1)
-    {
-    printf("Could not initialize WiringPi library\n");
-    syslog(LOG_PERROR, "Could not initialize WiringPi library\n");
-    return 1;
+    if (wiringPiSetup() == -1){
+        printf("Could not initialize WiringPi library\n");
+        syslog(LOG_PERROR, "Could not initialize WiringPi library\n");
+        return 1;
     }
 
     if(encryption_init()==ENCRYPTION_ERROR){

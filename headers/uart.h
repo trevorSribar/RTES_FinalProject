@@ -6,27 +6,18 @@
 #include <wiringSerial.h>
 
 #define BAUD_RATE 115200
-#define BUFFER_SIZE 256
-#define TEST_SET 1
-#define UART_SENDER_SERVO_DATA 2
-#define UART_SENDER_SENTENCE_ENCRYPTED 1 
-#define UART_SENDER_SENTENCE_UNENCRYPTED 0 
-#define UART_NUM_CHECK_EMPTY_BE_SURE 3
+#define UART_DATA_TYPE_SENTENCE 1
+#define UART_DATA_TYPE_SERVO 2
+#define UART_MAX_DATA_TYPE 2
+#define UART_MIN_DATA_TYPE 1
 
-//send string s over UART over a length of s_len with a type of s_type representing unencrypted as 0, encrypted as 1, and laser toggle as 2
-void uart_send(char *s, int s_len, int s_type);
+#define UART_DATA_TYPE_NONE 0 // this is for the case where we are receiving and see no pending bits to receive
 
-//receive a string over UART
-char *uart_receive();
+//send over UART a string of some length and dataType;
+void uart_send(char *string, int length, int dataType);
 
-//return the length of the string that has not yet been fully processed by the receiver
-int uart_str_len();
-
-//test set function for the sending Raspberry Pi (TEST_SET=1)
-void sender_test_set();
-
-//test set function for the receiving Raspberry Pi (TEST_SET=2)
-void receiver_test_set();
+//receive a string over UART, reutrns the data type
+uint8_t uart_receive(char *sentence, uint8_t *size);
 
 //initialize UART through WiringPi library
 int initialize_uart();

@@ -134,3 +134,7 @@ void sentenceLL_getSentence(sentenceLinkedList_t **tail, char *sentence, uint8_t
     memcpy(sentence, trueTail->sentence, trueTail->numCharacters);
     *length = trueTail->numCharacters;
 }
+
+void sentenceLL_setNonce(sentenceLinkedList_t **encryption_head, char *nonce){
+    memcpy(*encryption_head->sentenceNonce, nonce, ENCRYPTION_NONCE_LENGTH);
+}

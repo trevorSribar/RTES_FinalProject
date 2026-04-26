@@ -37,8 +37,6 @@
 #include <errno.h>
 
 // defines
-#define DELAY_SCHEDLUER_MSEC (struct timespec) {0,333333} // delay for 333.333 usec, 3000 Hz
-
 #define TYPE_SENDER 0
 #define TYPE_RECEIVOR 1
 #define RPI_TYPE TYPE_SENDER
@@ -55,11 +53,10 @@
 #define NS_PER_MS               1000000
 #define NS_PER_SEC              (NS_PER_MS * 1000)
 #define SERVO_MOVE_TIME         (900*NS_PER_MS)
-#define SERVO_MOVE_DIVISOR      5
-#define DIVIDED_SERVO_MOVE_TIME    (SERVO_MOVE_TIME/SERVO_MOVE_DIVISOR)
+#define SERVO_MOVE_DIVISOR      9
+#define DIVIDED_SERVO_MOVE_TIME (SERVO_MOVE_TIME/SERVO_MOVE_DIVISOR)
 #define TIMER_RELATIVE 0
 #define LOGGING TRUE
-void echo_UART();
 
 // added code for finding WCET
 #define FINDING_WCET FALSE
@@ -77,10 +74,10 @@ static inline void getElapsedTime(uint8_t task, struct timespec releaseTime, str
 #endif
 
 // variables
+sentenceLinkedList_t *addHead, *encryptHead, *sendHead; 
 sem_t task_sems[NUM_THREADS];
 uint8_t abort_service[NUM_THREADS] = {0};
 int task_priorities[NUM_THREADS] = {0,SERVO_PRIO,EXTERNAL_PRIO,ENCRYPT_DECRYPT_PRIO,KEYGEN_PRIO,UART_PRIO,TERMINAL_PRIO};
-sentenceLinkedList_t *addHead, *encryptHead, *sendHead; 
 uint8_t servoPosition[ENCRYPTION_KEY_LENGTH*8];
 uint8_t communicatedServoBasis[ENCRYPTION_KEY_LENGTH*8];
 uint8_t generateNewKey = FALSE;
@@ -92,6 +89,8 @@ uint8_t sensedData[ENCRYPTION_KEY_LENGTH*8];
 
 
 // function prototypes
+void echo_UART();
+uint8_t init_all();
 void *Service_1_Servos(void *);
 void *Service_2_Periferal(void *);
 void *Service_3_Encrypt(void *);
@@ -120,33 +119,10 @@ void main(void)
     clock_gettime(CLOCK_MONOTONIC,&start_time); // start_time->tv_sec, start_time->tv_nsec
     syslog(LOG_INFO, "Initalization start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
 
-    if (wiringPiSetup() == -1)
-    {
-    printf("Could not initialize WiringPi library\n");
-    syslog(LOG_PERROR, "Could not initialize WiringPi library\n");
-    return;
-    }
-
-    // initalizing other files
-    if(encryption_init()==ENCRYPTION_ERROR){
-        perror("Encryption init error\n\r");
+    if(init_all()!=0){
+        perror("Initalization failed\n\r");
         return;
     }
-    sentenceLL_init(&addHead, &encryptHead, &sendHead);
-    servo_init();
-    if(initialize_uart()!=0){
-        perror("UART init error\n\r");
-        return;
-    }
-    terminal_init(&addHead);
-    keygen_init();
-    #if (RPI_TYPE == TYPE_SENDER)
-    init_laser_send();
-    #else
-    init_laser_receive();
-    init_ads1115();
-    calibrate_ads1115();
-    #endif
 
     // configuring the main thread
     mainpid=getpid();
@@ -173,17 +149,8 @@ void main(void)
             if(sem_init (&task_sems[i], 0, 0)) { printf ("Failed to initialize semaphore number %d\n",i); exit (-1); }
         }
     }
-
-    // assigning functions to each thread, hard to do this in loop
-    // rc=pthread_create(&threads[1],             // pointer to thread descriptor
-    //                 &rt_sched_attr[1],         // use specific attributes
-    //                 //(void *)0,               // default attributes
-    //                 Service_1,                 // thread function entry point
-    //                 (void *)&(threadParams[1]) // parameters to pass in
-    //                 );
     
     // thread creation
-    
     printf("pthread created: ");
 
     rc=pthread_create(&threads[1],&rt_sched_attr[1],Service_1_Servos, NULL);
@@ -211,29 +178,28 @@ void main(void)
     else        {printf("S6, ");}
 
     // schedueler
-    struct timespec startIterationTime;
     uint32_t numNanosecondsSleep;
     printf("\nStarting scheduler\n");
     #if (FINDING_WCET == TRUE)
     printf("Finding WCETs, scheduler %u times\n", NUM_TIMES_TEST);
     echo_UART();
     for(int i = 0; i<NUM_TIMES_TEST; i++){
-        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
+        clock_gettime(CLOCK_MONOTONIC,&start_time);
         #if (LOGGING == TRUE)
-        syslog(LOG_INFO, "Scheduler start:\tsec=%lu\tnsec=%lu\n", startIterationTime.tv_sec, startIterationTime.tv_nsec);
+        syslog(LOG_INFO, "Scheduler start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
         #endif
         sem_post(&task_sems[1]);
         sem_post(&task_sems[3]);
         sem_post(&task_sems[4]);
         sem_post(&task_sems[5]);
 
-        for(int i =0; i < SERVO_MOVE_DIVISOR; i++){
-            startIterationTime.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
-            if(startIterationTime.tv_nsec>NS_PER_SEC){
-                startIterationTime.tv_nsec-=NS_PER_SEC;
-                startIterationTime.tv_sec++;
+        for(uint8_t i = 0; i < SERVO_MOVE_DIVISOR; i++){
+            start_time.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
+            if(startItestart_timerationTime.tv_nsec>NS_PER_SEC){
+                start_time.tv_nsec-=NS_PER_SEC;
+                start_time.tv_sec++;
             }
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &startIterationTime, NULL);
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &start_time, NULL);
 
             sem_post(&task_sems[3]);
             sem_post(&task_sems[5]);
@@ -256,7 +222,7 @@ void main(void)
         sem_post(&task_sems[4]);
         sem_post(&task_sems[5]);
 
-        for(int i =0; i < SERVO_MOVE_DIVISOR; i++){
+        for(uint8_t i =0; i < SERVO_MOVE_DIVISOR; i++){
             startIterationTime.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
             if(startIterationTime.tv_nsec>NS_PER_SEC){
                 startIterationTime.tv_nsec-=NS_PER_SEC;
@@ -269,6 +235,10 @@ void main(void)
         }
 
         sem_post(&task_sems[2]);
+        #if (LOGGING == TRUE)
+        clock_gettime(CLOCK_MONOTONIC,&startIterationTime);
+        syslog(LOG_INFO, "Scheduler end:\tsec=%lu\tnsec=%lu\n", startIterationTime.tv_sec, startIterationTime.tv_nsec);
+        #endif
         sem_wait(&task_sems[0]);
     }
     #endif
@@ -293,20 +263,19 @@ void *Service_1_Servos(void *)
     uint16_t servoMoveCount = 0;
     printf("Servo service started\t");
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
-        struct timespec releaseTime, completionTime;
-        #endif
+    struct timespec releaseTime, completionTime;
+    #endif
 
     while(!abort_service[1])
     {
         sem_wait(&task_sems[1]);
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
         syslog(LOG_INFO, "S1 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
-        if(servoMoveCount>ENCRYPTION_KEY_LENGTH*8){
+        if(servoMoveCount>ENCRYPTION_KEY_LENGTH*8){ // waiting for new key criteria change modify fix
             if(generateNewKey!=TRUE){
                 continue;
             }
@@ -314,12 +283,12 @@ void *Service_1_Servos(void *)
         }
         servoPosition[servoMoveCount] = servo_set_angle_random();
         servoMoveCount++;
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #if (FINDING_WCET == TRUE)
         getElapsedTime(1, releaseTime, completionTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&completionTime);
         syslog(LOG_INFO, "S1 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
         #endif
     }
@@ -331,23 +300,24 @@ void *Service_1_Servos(void *)
 void *Service_2_Periferal(void *) 
 {
     printf("external periferal service started\t");
-    uint16_t readData;
     numRunPeriferal = 0;
+    #if (RPI_TYPE != TYPE_SENDER)
+    uint16_t readData;
+    #endif
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
-        struct timespec releaseTime, completionTime;
-        #endif
+    struct timespec releaseTime, completionTime;
+    #endif
 
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
         syslog(LOG_INFO, "S2 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
-        if(numRunPeriferal>=ENCRYPTION_KEY_LENGTH*8){
+        if(numRunPeriferal>=ENCRYPTION_KEY_LENGTH*8){ // waiting for new key criteria change modify fix
             if(generateNewKey!=TRUE){
                 sem_post(&task_sems[0]);
                 continue;
@@ -373,12 +343,12 @@ void *Service_2_Periferal(void *)
         while(get_laser_state_gpio()==1);
         #endif
         numRunPeriferal++;
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #if (FINDING_WCET == TRUE)
         getElapsedTime(2, releaseTime, completionTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&completionTime);
         syslog(LOG_INFO, "S2 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
         #endif
         sem_post(&task_sems[0]);
@@ -392,20 +362,19 @@ void *Service_3_Encrypt(void *)
 {
     printf("Encryption service started\t");
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
-        struct timespec releaseTime, completionTime;
-        #endif
+    struct timespec releaseTime, completionTime;
+    #endif
     while(!abort_service[3])
     {
         sem_wait(&task_sems[3]);
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
+        #endif
+        #if (LOGGING == TRUE)
+        syslog(LOG_INFO, "S3 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
         // if we have any data to encrypt
         while(sentenceLL_getNumSentencesToEncrypt()!=0){
-            #if (LOGGING == TRUE)
-            clock_gettime(CLOCK_MONOTONIC,&releaseTime);
-            syslog(LOG_INFO, "S3 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
-            #endif
             #if (RPI_TYPE == TYPE_SENDER) // encrypting data
             // create a new nonce
             encryption_updateNonce();
@@ -430,12 +399,12 @@ void *Service_3_Encrypt(void *)
             }
             #endif
         }
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #if (FINDING_WCET == TRUE)
         getElapsedTime(3, releaseTime, completionTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&completionTime);
         syslog(LOG_INFO, "S3 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
         #endif
     }
@@ -449,20 +418,20 @@ void *Service_4_Keygen(void *)
     uint8_t lastComputedKeygenIndex;
     printf("Keygen service started\t");
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
-        struct timespec releaseTime, completionTime;
-        #endif
+    struct timespec releaseTime, completionTime;
+    #endif
     while(!abort_service[4])
     {
         sem_wait(&task_sems[4]);
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
         syslog(LOG_INFO, "S4 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
+        
         // function changes based on whether we are the sender or receiver pi
-        if(keygenIndex>lastComputedKeygenIndex){
+        if(keygenIndex>lastComputedKeygenIndex){ // waiting for new key criteria change modify fix
             #if (RPI_TYPE == TYPE_SENDER)
             keygen_senderByByte(servoPosition,communicatedServoBasis,lastComputedKeygenIndex,keygenIndex);
             #else
@@ -471,12 +440,12 @@ void *Service_4_Keygen(void *)
             lastComputedKeygenIndex=keygenIndex;
         }
 
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #if (FINDING_WCET == TRUE)
         getElapsedTime(4, releaseTime, completionTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&completionTime);
         syslog(LOG_INFO, "S4 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
         #endif
     }
@@ -488,105 +457,116 @@ void *Service_4_Keygen(void *)
 void *Service_5_UART(void *) 
 {
     printf("UART service started\t");
-    #if (RPI_TYPE == TYPE_SENDER)
-    uint8_t waitingForServoReply = FALSE;
-    uint16_t pendingServoStartIndex = 0;
-    uint16_t pendingServoBitLen = 0;
-    #endif
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
-        struct timespec releaseTime, completionTime;
-        #endif
+    struct timespec releaseTime, completionTime;
+    #endif
 
     while(!abort_service[5])
     {
         sem_wait(&task_sems[5]);
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
         syslog(LOG_INFO, "S5 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
+
+
+
         #if (RPI_TYPE == TYPE_SENDER)
-        if(waitingForServoReply == TRUE){
-            char *receiverServoBasisData;
-            receiverServoBasisData = uart_receive();
-            if(receiverServoBasisData != NULL && receiverServoBasisData[0] == (char)(0x11 + UART_SENDER_SERVO_DATA)){
-                uint16_t rxLen = (uint8_t)receiverServoBasisData[1];
-                uint16_t copyLen = (rxLen < pendingServoBitLen) ? rxLen : pendingServoBitLen;
-                for(uint16_t i = 0; i < copyLen; i++){
-                    communicatedServoBasis[pendingServoStartIndex + i] = receiverServoBasisData[i+2];
-                }
-                keygenIndex += copyLen / 8;
-                waitingForServoReply = FALSE;
-            }
-        }
-        else if(numRunPeriferal - 8 * keygenIndex >= 8){ // if we need to send keygen
-            uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8;
-            uint16_t servoBitLen = numServoDataToSend * 8;
-            char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8];
+
+        // Servo data
+        if(numRunPeriferal - (8 * keygenIndex) >= 8){ // if we need to send keygen, we have a byte to send
+            uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8; // the number of bytes we have to send
+            uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
+            char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
+
+            // generate the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
                 servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
             }
-            // send the current servo data
-            uart_send(servoPositionBasisesToSend, servoBitLen, UART_SENDER_SERVO_DATA);
-            pendingServoStartIndex = 8 * keygenIndex;
-            pendingServoBitLen = servoBitLen;
-            waitingForServoReply = TRUE;
+
+            // send the current servo basis data
+            uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
+
+            // pull the servo basis data
+            while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
+
+            // save the servo basis data
+            for(uint16_t i = 0; i < servoBitLen; i++){
+                communicatedServoBasis[i + 8 * keygenIndex] = servoPositionBasisesToSend[i];
+            }
+
         }
+
+        // Sentence Data
         while(sentenceLL_getNumSentencesToSend()>0){
             char bytesToSend[ENCRYPTION_NONCE_LENGTH+SENTENCELL_SENTENCE_SIZE];
             uint8_t length;
-            sentenceLL_getSentence(&sendHead, &bytesToSend[ENCRYPTION_NONCE_LENGTH], &length);
+            // copy in the nonce to send
             memcpy(bytesToSend,sendHead->sentenceNonce,ENCRYPTION_NONCE_LENGTH);
+
+            // ask for the current sentence, and copy it AFTER the nonce location
+            sentenceLL_getSentence(&sendHead, &bytesToSend[ENCRYPTION_NONCE_LENGTH], &length);
+
+            // add the nonce length to the message size
             length+=ENCRYPTION_NONCE_LENGTH;
+
+            // send it
             uart_send(bytesToSend, length, UART_SENDER_SENTENCE_ENCRYPTED);
             sentenceLL_removeSentence(&sendHead);
         }
-        #else
-        if(numRunPeriferal - 8 * keygenIndex >= 8){ // if we need to send keygen
-            char *receiverServoBasisData;
-            receiverServoBasisData = uart_receive();
-            if(receiverServoBasisData != NULL && receiverServoBasisData[0] == (char)(0x11 + UART_SENDER_SERVO_DATA)){
-                uint16_t rxServoBitLen = (uint8_t)receiverServoBasisData[1];
-                uint16_t localServoBitLen = ((numRunPeriferal - 8 * keygenIndex)/8) * 8;
-                uint16_t servoBitLenToProcess = (rxServoBitLen < localServoBitLen) ? rxServoBitLen : localServoBitLen;
-                char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8];
-                for(uint16_t i = 0; i < servoBitLenToProcess; i++){
-                    servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
-                }
-                // send the current servo data
-                uart_send(servoPositionBasisesToSend, servoBitLenToProcess, UART_SENDER_SERVO_DATA);
-                for(uint16_t i = 0; i < servoBitLenToProcess; i++){
-                    communicatedServoBasis[i + 8 * keygenIndex] = receiverServoBasisData[i+2];
-                }
-                keygenIndex += servoBitLenToProcess / 8;
-            }
-        }
-        for(uint8_t i = 0; i < UART_NUM_CHECK_EMPTY_BE_SURE; i++){
-            char *sentenceToReceive;
-            sentenceToReceive = uart_receive();
-            if(sentenceToReceive!=NULL &&
-               (sentenceToReceive[0] == (char)(0x11 + UART_SENDER_SENTENCE_UNENCRYPTED) ||
-                sentenceToReceive[0] == (char)(0x11 + UART_SENDER_SENTENCE_ENCRYPTED))){
-                i = 0;
-                memcpy(addHead->sentenceNonce, &sentenceToReceive[2], ENCRYPTION_NONCE_LENGTH);
-                sentenceLL_addSentence(&addHead, &(sentenceToReceive[2+ENCRYPTION_NONCE_LENGTH]), sentenceToReceive[1]-ENCRYPTION_NONCE_LENGTH);
 
-                printf("UART receiver got sentence (%u bytes payload)\n", (uint8_t)sentenceToReceive[1]);
-                for(uint8_t j = ENCRYPTION_NONCE_LENGTH + 2; j < (uint8_t)sentenceToReceive[1] + 2; j++){
-                    printf("%c", sentenceToReceive[j]);
-                }
-                printf("\n");
+
+        // we are the receiver
+        #else
+        // Servo Data
+        if(numRunPeriferal - (8 * keygenIndex) >= 8){ // if we need to send keygen, we have a byte to send
+            uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8; // the number of bytes we have to send
+            uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
+            char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
+
+            // pull the servo basis data
+            while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
+
+            // save the servo basis data
+            for(uint16_t i = 0; i < servoBitLen; i++){
+                communicatedServoBasis[i + 8 * keygenIndex] = servoPositionBasisesToSend[i];
+            }
+
+            // generate the servo basis data
+            for(uint16_t i = 0; i < servoBitLen; i++){
+                servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
+            }
+
+            // send the current servo basis data
+            uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
+        }
+
+        // Sentence Data
+        for(uint8_t i = 0; i < UART_NUM_CHECK_EMPTY_BE_SURE; i++){
+            char sentenceReveived[ENCRYPTION_NONCE_LENGTH+SENTENCELL_SENTENCE_SIZE];
+            uint8_t sizeOfSentence;
+            uint8_t dataType = uart_receive(sentenceReveived,sizeOfSentence);
+            if(dataType==0){
+                continue; // skip the reset of this
+            }
+            else if (dataType == UART_DATA_TYPE_SENTENCE){
+                sentenceLL_setNonce(&addHead,sentenceReveived);
+                // must be done after adding the nonce else it will add the nonce to the next sentence instead of the current sentence
+                sentenceLL_addSentence(&addHead,&sentenceReveived[ENCRYPTION_NONCE_LENGTH],sizeOfSentence-ENCRYPTION_NONCE_LENGTH);
             }
         }
         #endif
-        #if (FINDING_WCET == TRUE)
+
+
+
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #if (FINDING_WCET == TRUE)
         getElapsedTime(5, releaseTime, completionTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&completionTime);
         syslog(LOG_INFO, "S5 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
         #endif
     }
@@ -598,18 +578,19 @@ void *Service_5_UART(void *)
 void *Service_6_Terminal(void *){
     printf("Terminal service started\t");
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
-        struct timespec releaseTime, completionTime;
-        #endif
+    struct timespec releaseTime, completionTime;
+    #endif
 
     while(!abort_service[6])
     {
-        #if (FINDING_WCET == TRUE)
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&releaseTime);
         syslog(LOG_INFO, "S6 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
+
+        // check RPI type
         #if (RPI_TYPE == TYPE_SENDER)
         if(terminal_read_char()!=0){
             perror("Terminal get char error\n\r");
@@ -619,17 +600,50 @@ void *Service_6_Terminal(void *){
             terminal_print_and_delete_DecryptedSentence(&sendHead);
         }
         #endif
-        #if (FINDING_WCET == TRUE)
+
+
+        #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);
+        #if (FINDING_WCET == TRUE)
         getElapsedTime(6, releaseTime, completionTime);
         #endif
         #if (LOGGING == TRUE)
-        clock_gettime(CLOCK_MONOTONIC,&completionTime);
         syslog(LOG_INFO, "S6 end:\tsec=%lu\tnsec=%lu\n", completionTime.tv_sec, completionTime.tv_nsec);
         #endif
     }
 
     pthread_exit((void *)0);
+}
+
+// initalizes all external files
+uint8_t init_all(){
+    // initalizing other files
+    if (wiringPiSetup() == -1)
+    {
+    printf("Could not initialize WiringPi library\n");
+    syslog(LOG_PERROR, "Could not initialize WiringPi library\n");
+    return 1;
+    }
+
+    if(encryption_init()==ENCRYPTION_ERROR){
+        perror("Encryption init error\n\r");
+        return 1;
+    }
+    sentenceLL_init(&addHead, &encryptHead, &sendHead);
+    servo_init();
+    if(initialize_uart()!=0){
+        perror("UART init error\n\r");
+        return 1;
+    }
+    terminal_init(&addHead);
+    keygen_init();
+    #if (RPI_TYPE == TYPE_SENDER)
+    init_laser_send();
+    #else
+    init_laser_receive();
+    init_ads1115();
+    calibrate_ads1115();
+    #endif
 }
 
 // ensure that the RPis are echoing characters between each other over UART

@@ -4,146 +4,65 @@
 
 #include "uart.h"
 
-int programFlag = 1;
 int serialPort;
-char buffer[BUFFER_SIZE + 2];
 
-void uart_send(char *s, int s_len, int s_type)
+//send over UART a string of some length and dataType;
+void uart_send(char *string, int length, int dataType)
 {
-  if (s_len >= BUFFER_SIZE)
-  {
-    perror("string length is too large!");
+  if (length > 256){ // if length is bigger than a char
+    perror("UART Error: Invalid data size\n")
     return;
   }
-
-  if (s_type > 2 || s_type < 0)
+  if (dataType > UART_MAX_DATA_TYPE || dataType < UART_MIN_DATA_TYPE)
   {
+    perror("UART Write Error: Invalid data type\n");
     return;
   }
-
-  char dataType = 0x11 + s_type; //s_type should only be of values 0, 1, or 2 to represent unencrypted, encrypted, and sender servo data
 
   serialPutchar(serialPort, dataType);
-  serialPutchar(serialPort, (char)s_len); //cast s_len to char, string length can never be greater than 255 anyway
+  serialPutchar(serialPort, length);
 
   for (int i = 0; i < s_len; i++)
   {
-    serialPutchar(serialPort, s[i]);
+    serialPutchar(serialPort, string[i]);
   }
 }
 
-char *uart_receive()
+// receive a string over UART, reutrns the data type
+uint8_t uart_receive(char *sentence, uint8_t *size)
 {
   if (!serialDataAvail(serialPort))
   {
-    return NULL;
+    return 0;
   }
 
-  memset(buffer, '\0', sizeof(buffer));
-  buffer[0] = serialGetchar(serialPort);
-
-  // Always treat the first byte as a frame type to avoid stale-state desync.
-  switch (buffer[0])
+  uint8_t dataType = serialGetchar(serialPort); // the first data MUST be the data type
+  if (dataType > UART_MAX_DATA_TYPE || dataType < UART_MIN_DATA_TYPE)
   {
-    case 0x11: //unencrypted string
-    case 0x12: //encrypted string
-    case 0x13: //servo data
-      break;
-    default: //in any other situation don't receive string - perform a serial flush
-
-      serialFlush(serialPort);
-      return NULL;
-  }
-
-  while (!serialDataAvail(serialPort)) {}
-
-  buffer[1] = serialGetchar(serialPort);
-  int strLen = (int)((uint8_t)buffer[1]);
-
-  if (strLen > BUFFER_SIZE)
-  {
-
+    perror("UART Read Error: Invalid data type\n");
     serialFlush(serialPort);
-    return NULL;
+    return -1;
   }
-  int dataCount = strLen;
 
-  for (int i = 2; i < strLen + 2; i++)
+  while (!serialDataAvail(serialPort)); // wait for more data to come
+
+  *size = serialGetchar(serialPort); // the next will be the size, size will be 0 to 255, where 0 = 256, all entries are valid
+
+  uint16_t sizeToLoopOver = *size; // our size parameter chan't hold 256, but this is the largest amount of data we must send, so we have to account for when size is 0 and iterate properly
+  if(sizeToLoopOver==0){
+    sizeToLoopOver=256;
+  }
+
+  for (uint16_t i = 0; i < sizeToLoopOver; i++)
   {
     while (!serialDataAvail(serialPort)) {}
-    
-    buffer[i] = serialGetchar(serialPort);
-    dataCount--;
-
-    if (dataCount == 0)
-    {
-      serialFlush(serialPort);
-      break;
-    }
+    string[i] = serialGetchar(serialPort);
   }
 
-  return buffer;
+  return dataType;
 }
 
-int uart_str_len()
-{
-  return (int)((uint8_t)buffer[1]);
-}
-
-void sender_test_set()
-{
-  char sbuffer[BUFFER_SIZE];
-  int sflag = 1;
-
-  memset(sbuffer, '\0', sizeof(sbuffer));
-
-  uart_send("foo", 3, 0);
-
-  printf("Sent string: foo\n");
-
-  printf("Waiting for string...\n");
-
-  while (sflag)
-  {
-    if (serialDataAvail(serialPort))
-    {
-      sflag = 0;
-    }
-    strncpy(sbuffer, uart_receive(), sizeof(sbuffer));
-  }
-
-  printf("Received string: %s\n", sbuffer);
-
-  memset(sbuffer, '\0', sizeof(sbuffer));
-}
-
-void receiver_test_set()
-{
-  char rbuffer[BUFFER_SIZE];
-  int rflag = 1;
-
-  memset(rbuffer, '\0', sizeof(rbuffer));
-  
-  printf("Waiting for string...\n");
-
-  while (rflag)
-  {
-    if (serialDataAvail(serialPort))
-    {
-      rflag = 0;
-    }
-    strncpy(rbuffer, uart_receive(), sizeof(rbuffer));
-  }
-
-  printf("Received string: %s\n", rbuffer);
-
-  memset(rbuffer, '\0', sizeof(rbuffer));
-
-  uart_send("bar", 3, 0);
-
-  printf("Sent string: bar\n");
-}
-
+// initializes UART
 int initialize_uart()
 {
   serialPort = serialOpen("/dev/ttyS0", BAUD_RATE);
@@ -160,6 +79,5 @@ int initialize_uart()
 
 void close_uart()
 {
-  programFlag = 0;
   serialClose(serialPort);
 }

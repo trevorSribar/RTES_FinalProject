@@ -14,7 +14,7 @@ int serialPort;
 void uart_send(char *string, int length, int dataType)
 {
   if (length > 256){ // if length is bigger than a char
-    perror("UART Error: Invalid data size\n")
+    perror("UART Error: Invalid data size\n");
     return;
   }
   if (dataType > UART_MAX_DATA_TYPE || dataType < UART_MIN_DATA_TYPE)
@@ -26,7 +26,7 @@ void uart_send(char *string, int length, int dataType)
   serialPutchar(serialPort, dataType);
   serialPutchar(serialPort, length);
 
-  for (int i = 0; i < s_len; i++)
+  for (int i = 0; i < length; i++)
   {
     serialPutchar(serialPort, string[i]);
   }
@@ -57,10 +57,9 @@ uint8_t uart_receive(char *sentence, uint8_t *size)
     sizeToLoopOver=256;
   }
 
-  for (uint16_t i = 0; i < sizeToLoopOver; i++)
-  {
+  for (uint16_t i = 0; i < sizeToLoopOver; i++){
     while (!serialDataAvail(serialPort)) {}
-    string[i] = serialGetchar(serialPort);
+    sentence[i] = serialGetchar(serialPort);
   }
 
   return dataType;

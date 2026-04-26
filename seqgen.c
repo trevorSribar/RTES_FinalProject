@@ -205,7 +205,7 @@ void main(void)
 
         for(uint8_t i = 0; i < SERVO_MOVE_DIVISOR; i++){
             start_time.tv_nsec += DIVIDED_SERVO_MOVE_TIME;
-            if(startItestart_timerationTime.tv_nsec>NS_PER_SEC){
+            if(start_time.tv_nsec>NS_PER_SEC){
                 start_time.tv_nsec-=NS_PER_SEC;
                 start_time.tv_sec++;
             }

@@ -47,4 +47,4 @@ void sentenceLL_destroy(sentenceLinkedList_t **sendHead);
 void sentenceLL_getSentence(sentenceLinkedList_t **tail, char *sentence, uint8_t *length);
 
 // setter for the sentence nonce, needed for the receiver to add it
-void sentenceLL_setNonce(sentenceLinkedList_t **encryption_head, char *nonce)
+void sentenceLL_setNonce(sentenceLinkedList_t **encryption_head, char *nonce);

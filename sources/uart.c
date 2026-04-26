@@ -2,6 +2,10 @@
 // Kenneth Alcineus
 // 4/18/2026
 
+// Modified by Trevor Sribar
+// Modified uart_send, uart_receive, removed 3 usless functions
+// 4/26/2026
+
 #include "uart.h"
 
 int serialPort;

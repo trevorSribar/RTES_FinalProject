@@ -28,10 +28,12 @@ int terminal_read_char()
 
     if (ready == 0 || !FD_ISSET(STDIN_FILENO, &readfds))
     {
+        // this is a weird early return that is success, so I don't really know what this is for
         return 0;
     }
 
     int value = getchar();
+    printf("%c, %d\t",value, value);
 	if (value == EOF)
 	{
 		return -1;

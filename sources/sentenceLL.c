@@ -23,7 +23,7 @@ void sentenceLL_init(sentenceLinkedList_t **addHead, sentenceLinkedList_t **encr
 // adds an element to the linked list and iterates the head to that element, adds to how many sentences must be encrypted
 uint8_t sentenceLL_addSentence(sentenceLinkedList_t **head, char *sentence, uint8_t length){
     #if (SENTENCELL_DEBUG_PRINTS == 1)
-    printf("add sentence: s");
+    printf("add sentence: ");
     for(uint8_t i = 0; i < length; i++){
         printf("%c",sentence[i]);
     }

@@ -58,7 +58,8 @@
 #define TIMER_RELATIVE 0
 #define LOGGING TRUE
 #define PERIF_DEBUG_PRINTS FALSE
-#define SERVO_SYNC_DEBUG_PRINTS FALSE
+#define SERVO_SYNC_DEBUG_PRINTS TRUE
+#define UART_SERVO_DEBUG_PRINTS FALSE
 
 // added code for finding WCET
 #define FINDING_WCET FALSE
@@ -488,12 +489,16 @@ void *Service_5_UART(void *)
             uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
+            #if (UART_SERVO_DEBUG_PRINTS == TRUE)
             printf("Num run periferal: %u\n\r",numRunPeriferal); //remove change modify fix
 
             // pull the servo basis data
             printf("Sender: Waiting for Servo Data\n\r");
+            #endif
             while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
-            printf("Sender: Recieved servo data\n\r"); // remove this
+            #if (UART_SERVO_DEBUG_PRINTS == TRUE)
+            printf("Sender: Recieved servo data\n\r");
+            #endif
 
             // save the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
@@ -507,7 +512,9 @@ void *Service_5_UART(void *)
 
             // send the current servo basis data
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
+            #if (UART_SERVO_DEBUG_PRINTS == TRUE)
             printf("Sender: Sent servo data\n\r"); // remove this
+            #endif
 
             keygenIndex += numServoDataToSend;
         }
@@ -539,7 +546,9 @@ void *Service_5_UART(void *)
             uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
+            #if (UART_SERVO_DEBUG_PRINTS == TRUE)
             printf("Num run periferal: %u\n\r",numRunPeriferal); //remove change modify fix
+            #endif
 
             // generate the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
@@ -548,11 +557,15 @@ void *Service_5_UART(void *)
 
             // send the current servo basis data
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
+            #if (UART_SERVO_DEBUG_PRINTS == TRUE)
             printf("Receiver: Sent servo data\n\r"); // remove this
+            #endif
 
             // pull the servo basis data
             while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
+            #if (UART_SERVO_DEBUG_PRINTS == TRUE)
             printf("Receiver: Reveived servo data\n\r"); // remove this
+            #endif
 
             // save the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){

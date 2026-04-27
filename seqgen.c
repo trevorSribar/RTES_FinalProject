@@ -483,7 +483,7 @@ void *Service_5_UART(void *)
             for(uint16_t i = 0; i < servoBitLen; i++){
                 communicatedServoBasis[i + 8 * keygenIndex] = servoPositionBasisesToSend[i];
             }
-            numRunPeriferal += (numRunPeriferal - 8 * keygenIndex)/8;
+            keygenIndex += numServoDataToSend;
 
         }
 
@@ -529,7 +529,7 @@ void *Service_5_UART(void *)
 
             // send the current servo basis data
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
-            numRunPeriferal += (numRunPeriferal - 8 * keygenIndex)/8;
+            keygenIndex += numServoDataToSend;
         }
 
         // Sentence Data

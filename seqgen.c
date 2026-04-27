@@ -295,6 +295,7 @@ void *Service_2_Periferal(void *)
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
+        printf("Periferal counter numRunPeriferal %u\n\r", numRunPeriferal); // remove change modify
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif

@@ -33,7 +33,6 @@ int terminal_read_char()
     }
 
     int value = getchar();
-    printf("%c, %d\t",value, value); // remove this
 	if (value == EOF)
 	{
 		return -1;
@@ -47,6 +46,7 @@ int terminal_read_char()
         }
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
+        printf("\n\r >> ");
         return 0;
     }
 

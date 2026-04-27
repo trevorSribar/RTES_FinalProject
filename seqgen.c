@@ -613,7 +613,9 @@ void *Service_6_Terminal(void *){
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
+    #if (RPI_TYPE == TYPE_SENDER)
     printf("\n >> ");
+    #endif
     while(!abort_service[6])
     {
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)

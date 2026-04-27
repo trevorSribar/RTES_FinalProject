@@ -31,11 +31,12 @@ int terminal_read_char()
         return 0; // nothing in stdin right now
     }
 
-    int value = getchar();
-	if (value == EOF)
-	{
-		return TERIMINAL_ERROR;
-	}
+    unsigned char c;
+    if (read(STDIN_FILENO, &c, 1) != 1)
+    {
+        return TERIMINAL_ERROR;
+    }
+    int value = c;
 
     if(value == '\n' || value == '\r')
     {

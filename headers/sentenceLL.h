@@ -8,7 +8,7 @@
 // defines
 #define SENTENCELL_SENTENCE_SIZE 100 // max number of characters in a sentence
 #define SENTENCELL_ERROR 1
-#define SENTENCELL_DEBUG_PRINTS 1
+#define SENTENCELL_DEBUG_PRINTS FALSE
 
 // structs
 typedef struct sentenceLinkedList {

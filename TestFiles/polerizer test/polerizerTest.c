@@ -376,7 +376,7 @@ void *Service_2_Periferal(void *)
                 newMaxMin = 1;
             }
             if(newMaxMin == 1){
-                printf("\rRead data \tmax: %d\tmin: %d"maxReadData,minReadData);
+                printf("\rRead data \tmax: %d\tmin: %d",maxReadData,minReadData);
                 newMaxMin = 0;
             }
         }

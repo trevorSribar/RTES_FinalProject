@@ -475,9 +475,11 @@ void *Service_5_UART(void *)
 
             // send the current servo basis data
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
+            printf("Sent servo data\n\r") // remove this
 
             // pull the servo basis data
             while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
+            printf("Reveived servo data\n\r") // remove this
 
             // save the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
@@ -516,6 +518,7 @@ void *Service_5_UART(void *)
 
             // pull the servo basis data
             while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
+            printf("Recieved servo data\n\r") // remove this
 
             // save the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
@@ -529,6 +532,8 @@ void *Service_5_UART(void *)
 
             // send the current servo basis data
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
+            printf("Sent servo data\n\r") // remove this
+
             keygenIndex += numServoDataToSend;
         }
 
@@ -582,8 +587,14 @@ void *Service_6_Terminal(void *){
 
         // check RPI type
         #if (RPI_TYPE == TYPE_SENDER)
-        if(terminal_read_char()!=0){
-            perror("Terminal get char error\n\r");
+        {
+            int rc;
+            while(rc > 0){
+                rc = terminal_read_char();
+            }
+            if(rc < 0){
+                perror("Terminal get char error\n\r");
+            }
         }
         #else
         if(sentenceLL_getNumSentencesToSend()>0){

@@ -28,8 +28,7 @@ int terminal_read_char()
 
     if (ready == 0 || !FD_ISSET(STDIN_FILENO, &readfds))
     {
-        // this is a weird early return that is success, so I don't really know what this is for
-        return 0;
+        return 0; // nothing in stdin right now
     }
 
     int value = getchar();
@@ -42,11 +41,11 @@ int terminal_read_char()
     {
         if (sentence_length == 0)
         {
-            return 0;
+            return 1; // consumed the newline, may be more data
         }
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
-        return 0;
+        return 1; // submitted a sentence, may be more data
     }
 
     input_buffer[sentence_length] = (char) value;
@@ -56,7 +55,7 @@ int terminal_read_char()
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
     }
-	return 0;
+	return 1; // consumed a character, may be more data
 }
 
 void terminal_print_and_delete_DecryptedSentence(sentenceLinkedList_t **tail){

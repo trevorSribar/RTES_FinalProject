@@ -587,15 +587,16 @@ void *Service_6_Terminal(void *){
 
         // check RPI type
         #if (RPI_TYPE == TYPE_SENDER)
-        {
-            int rc;
-            while(rc > 0){
-                rc = terminal_read_char();
-            }
-            if(rc < 0){
-                perror("Terminal get char error\n\r");
-            }
+        if(terminal_read_char()!=0){
+            perror("Terminal get char error\n\r");
         }
+        // int rc;
+        // while(rc > 0){
+        //     rc = terminal_read_char();
+        // }
+        // if(rc < 0){
+        //     perror("Terminal get char error\n\r");
+        // }
         #else
         if(sentenceLL_getNumSentencesToSend()>0){
             terminal_print_and_delete_DecryptedSentence(&sendHead);

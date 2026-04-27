@@ -54,9 +54,9 @@ void keygen_receiver(uint8_t *dataSensed, uint8_t *measuredServoData, uint8_t *r
             // if it was sent in basis 2, we were looking at zero in that base, and we saw no value, then 1 must have been sent
             
             // so the servos are facing eachother, not perfectly mirrored, effectivly making them 90 off if they choose the same thing, so we swap the logic that would normally be here
-            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ZERO_B2 && sensedValue==0){key[i]|=1<<j;}
+            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ZERO_B2 && sensedValue!=0){key[i]|=1<<j;}
             // if it was sent in basis 2, we were looking at one in that base, and saw a value, then 1 was sent
-            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ONE_B2 && sensedValue!=0) {key[i]|=1<<j;}
+            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ONE_B2 && sensedValue==0) {key[i]|=1<<j;}
         }
     }
     // update the key

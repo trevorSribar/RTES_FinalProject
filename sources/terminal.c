@@ -46,7 +46,6 @@ int terminal_read_char()
         }
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
-        printf("\n\r >> ");
         return 0;
     }
 
@@ -56,7 +55,6 @@ int terminal_read_char()
     {
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
-        printf("\n\r >> ");
     }
 	return 0;
 }

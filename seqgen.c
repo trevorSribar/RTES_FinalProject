@@ -60,6 +60,7 @@
 #define PERIF_DEBUG_PRINTS FALSE
 #define SERVO_SYNC_DEBUG_PRINTS FALSE
 #define UART_SERVO_DEBUG_PRINTS FALSE
+#define SERVICE_DEBUGPRINTS FALSE
 
 // added code for finding WCET
 #define FINDING_WCET FALSE
@@ -117,7 +118,7 @@ void main(void)
     // logging
     struct timespec start_time;
 
-    printf("Initializing BB84 Project\n");
+    printf("Running BB84 Project\n");
     clock_gettime(CLOCK_MONOTONIC,&start_time); // start_time->tv_sec, start_time->tv_nsec
     syslog(LOG_INFO, "Initalization start:\tsec=%lu\tnsec=%lu\n", start_time.tv_sec, start_time.tv_nsec);
 
@@ -148,7 +149,7 @@ void main(void)
 
         // task semaphor initalization
         if(i<NUM_THREADS-1){
-            if(sem_init (&task_sems[i], 0, 0)) { printf ("Failed to initialize semaphore number %d\n",i); exit (-1); }
+            if(sem_init (&task_sems[i], 0, 0)) {printf ("Failed to initialize semaphore number %d\n",i); exit (-1); }
         }
     }
     
@@ -157,31 +158,45 @@ void main(void)
 
     rc=pthread_create(&threads[1],&rt_sched_attr[1],Service_1_Servos, NULL);
     if(rc < 0)  { perror("\nError creating service 1");}
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S1, ");}
+    #endif
 
     rc=pthread_create(&threads[2],&rt_sched_attr[2],Service_2_Periferal, NULL);
     if(rc < 0)  { perror("\nError creating service 2");}
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S2, ");}
+    #endif
 
     rc=pthread_create(&threads[3],&rt_sched_attr[3],Service_3_Encrypt, NULL);
     if(rc < 0)  { perror("\nError creating service 3");}
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S3, ");}
+    #endif
 
     rc=pthread_create(&threads[4],&rt_sched_attr[4],Service_4_Keygen, NULL);
     if(rc < 0)  { perror("\nError creating service 4");}
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S4, ");}
+    #endif
     
     rc=pthread_create(&threads[5],&rt_sched_attr[5],Service_5_UART, NULL);
-    if(rc < 0)  { perror("\nError creating service 5");}
+    if(rc < 0)  { perror("\nError creating service 5");}\
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S5, ");}
+    #endif
 
     rc=pthread_create(&threads[6],&rt_sched_attr[6],Service_6_Terminal, NULL);
     if(rc < 0)  { perror("\nError creating service 6");}
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S6, ");}
+    #endif
 
     // schedueler
     uint32_t numNanosecondsSleep;
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("\nStarting scheduler\n");
+    #endif
     #if (FINDING_WCET == TRUE)
     printf("Finding WCETs, scheduler %u times\n", NUM_TIMES_TEST);
     #endif
@@ -247,7 +262,9 @@ void main(void)
 void *Service_1_Servos(void *) 
 {
     uint16_t servoMoveCount = 0;
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("Servo service started\t");
+    #endif
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
@@ -289,7 +306,9 @@ void *Service_1_Servos(void *)
 // external periferal service modify change needs something
 void *Service_2_Periferal(void *) 
 {
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("external periferal service started\t");
+    #endif
     numRunPeriferal = 0;
     #if (RPI_TYPE != TYPE_SENDER)
     uint16_t readData;
@@ -366,7 +385,9 @@ void *Service_2_Periferal(void *)
 // Encryption service
 void *Service_3_Encrypt(void *) 
 {
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("Encryption service started\t");
+    #endif
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
@@ -423,7 +444,9 @@ void *Service_3_Encrypt(void *)
 void *Service_4_Keygen(void *) 
 {
     uint8_t lastComputedKeygenIndex;
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("Keygen service started\t");
+    #endif
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
@@ -464,7 +487,9 @@ void *Service_4_Keygen(void *)
 // UART service TODO must fix modify change to do
 void *Service_5_UART(void *) 
 {
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("UART service started\t");
+    #endif
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
@@ -609,12 +634,14 @@ void *Service_5_UART(void *)
 
 // terminal service
 void *Service_6_Terminal(void *){
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("Terminal service started\n\r");
+    #endif
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
     #if (RPI_TYPE == TYPE_SENDER)
-    printf("\n >> ");
+    printf(" --- Welcome to the send Terminal, type in a sentence to send ---\n >> ");
     #endif
     while(!abort_service[6])
     {

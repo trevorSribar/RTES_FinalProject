@@ -49,6 +49,8 @@ int terminal_read_char()
         return 1; // submitted a sentence, may be more data
     }
 
+    // add an else if here if we want to do actual commands for /help, /newkey, /shutdown
+
     input_buffer[sentence_length] = (char) value;
     sentence_length++;
     if(sentence_length == SENTENCELL_SENTENCE_SIZE)

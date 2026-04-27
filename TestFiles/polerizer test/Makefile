@@ -6,8 +6,8 @@ CDEFS=
 CFLAGS= -O0 -g $(INCLUDE_DIRS) $(CDEFS)
 LIBS= -lrt -lmbedcrypto -lwiringPi
 
-HFILES= ../../$(wildcard headers/*.h)
-CFILES= polerizerTest.c ../../$(wildcard sources/*.c)
+HFILES= $(wildcard ../../headers/*.h)
+CFILES= polerizerTest.c $(wildcard ../../sources/*.c)
 
 SRCS= ${HFILES} ${CFILES}
 OBJS= $(patsubst %.c,%.o,$(CFILES))

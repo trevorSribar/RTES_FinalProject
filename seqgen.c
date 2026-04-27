@@ -311,13 +311,13 @@ void *Service_2_Periferal(void *)
         }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
-        prinf("Turned laser on, waiting for capture end\n\r");
+        printf("Turned laser on, waiting for capture end\n\r");
         while(get_laserCaptureState()==0);
         laser_off();
-        prinf("Capture start found, laser off, waiting for capture reset\n\r");
+        printf("Capture start found, laser off, waiting for capture reset\n\r");
         while(get_laserCaptureState()==1); // this ensures that the ADC releases faster, and this is good so that it will always capture the laser
         #else
-        prinf("waiting for laser on\n\r");
+        printf("waiting for laser on\n\r");
         while(get_laser_state_gpio()==0);
         readData = read_ads1115();
         if(readData > ADC_PHOTOSENSOR_READ_HIGH){
@@ -327,9 +327,9 @@ void *Service_2_Periferal(void *)
             sensedData[numRunPeriferal] = 0;
         }
         laser_capturedOn();
-        prinf("laser is on, capture is done, waiting for laser to be off\n\r");
+        printf("laser is on, capture is done, waiting for laser to be off\n\r");
         while(get_laser_state_gpio()==1);
-        prinf("turing capture off\n\r");
+        printf("turing capture off\n\r");
         laser_capturedOff();
         #endif
         numRunPeriferal++;

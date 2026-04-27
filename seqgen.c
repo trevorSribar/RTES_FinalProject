@@ -632,6 +632,7 @@ uint8_t init_all(){
     init_ads1115();
     calibrate_ads1115();
     #endif
+    return 0;
 }
 
 #if (FINDING_WCET == TRUE)

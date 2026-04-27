@@ -85,8 +85,7 @@ uint8_t sentenceLL_removeSentence(sentenceLinkedList_t **tail){
 // DOESN'T ENCRYPT, increments the head for the encryption, subtracts from how many sentences has to been encrypted, adds to how many sentences must be sent
 uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t **encryption_head, char *nonce){
     #if (SENTENCELL_DEBUG_PRINTS == 1)
-    printf("encrypt sentence");
-    printf("\n\r");
+    printf("encrypt sentence %d\n\r",numSentencesToSend);
     #endif
     sentenceLinkedList_t *trueEncryptionHead = *encryption_head;
     if(numSentencesToEncrypt==0){

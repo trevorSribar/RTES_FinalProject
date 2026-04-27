@@ -23,6 +23,7 @@
 #include "terminal.h"
 #include "adc.h"
 #include "laser.h"
+#include "uart.h"
 
 // includes for tasks, schedueling, and logging
 #include <pthread.h>
@@ -136,12 +137,12 @@ void main(void)
     rc=sched_setscheduler(getpid(), SCHED_FIFO, &main_param);
     if(rc < 0) perror("main_param");
 
-    #if (RPI_TYPE == TYPE_SENDER)
+    #if (RPI_TYPE == TYPE_SENDER)k
     // lining up the laser
     while(iterate_servo()!=1){
         laser_on();
     }
-    lase_off();
+    laser_off();
     #endif
 
     // thread initialization
@@ -175,30 +176,6 @@ void main(void)
     if(rc < 0)  { perror("\nError creating service 2");}
     #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S2, ");}
-    #endif
-
-    rc=pthread_create(&threads[3],&rt_sched_attr[3],Service_3_Encrypt, NULL);
-    if(rc < 0)  { perror("\nError creating service 3");}
-    #if (SERVICE_DEBUGPRINTS == TRUE)
-    else        {printf("S3, ");}
-    #endif
-
-    rc=pthread_create(&threads[4],&rt_sched_attr[4],Service_4_Keygen, NULL);
-    if(rc < 0)  { perror("\nError creating service 4");}
-    #if (SERVICE_DEBUGPRINTS == TRUE)
-    else        {printf("S4, ");}
-    #endif
-    
-    rc=pthread_create(&threads[5],&rt_sched_attr[5],Service_5_UART, NULL);
-    if(rc < 0)  { perror("\nError creating service 5");}
-    #if (SERVICE_DEBUGPRINTS == TRUE)
-    else        {printf("S5, ");}
-    #endif
-
-    rc=pthread_create(&threads[6],&rt_sched_attr[6],Service_6_Terminal, NULL);
-    if(rc < 0)  { perror("\nError creating service 6");}
-    #if (SERVICE_DEBUGPRINTS == TRUE)
-    else        {printf("S6, ");}
     #endif
 
     // schedueler

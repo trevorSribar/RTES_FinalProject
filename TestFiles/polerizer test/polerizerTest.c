@@ -287,7 +287,6 @@ void *Service_1_Servos(void *)
                 ignoreFlag = 1;
             }
             else{
-                printf("Send, Receive: %d @%d\n",ignoreIterate/2*45%180, (currentSevoAngle-1)*45);
                 if(ignoreIterate==8){
                     servo_set_angle(currentSevoAngle);
                     ignoreIterate = 0;
@@ -296,6 +295,7 @@ void *Service_1_Servos(void *)
                 }
                 ignoreFlag = 0;
                 newAngleFlag++;
+                printf("Send, Receive: %d @%d\n",ignoreIterate/2*45%180, (currentSevoAngle-1)*45);
             }
         }
         #endif

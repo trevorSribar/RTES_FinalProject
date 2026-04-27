@@ -23,7 +23,7 @@ int terminal_read_char()
     int ready = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
     if (ready < 0)
     {
-        return -1;
+        return TERIMINAL_ERROR;
     }
 
     if (ready == 0 || !FD_ISSET(STDIN_FILENO, &readfds))
@@ -34,7 +34,7 @@ int terminal_read_char()
     int value = getchar();
 	if (value == EOF)
 	{
-		return -1;
+		return TERIMINAL_ERROR;
 	}
 
     if(value == '\n' || value == '\r')

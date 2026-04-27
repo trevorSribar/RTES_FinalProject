@@ -587,7 +587,7 @@ void *Service_6_Terminal(void *){
 
         // check RPI type
         #if (RPI_TYPE == TYPE_SENDER)
-        if(terminal_read_char()!=0){
+        if(terminal_read_char()==TERIMINAL_ERROR){
             perror("Terminal get char error\n\r");
         }
         // int rc;

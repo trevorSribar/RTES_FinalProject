@@ -5,6 +5,9 @@
 #include "sentenceLL.h"
 
 
+#define TERIMINAL_ERROR -1
+
+
 // Optional setup hook for future terminal config.
 void terminal_init(sentenceLinkedList_t **linkedhead);
 

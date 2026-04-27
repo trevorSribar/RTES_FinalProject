@@ -75,7 +75,7 @@ void echo_uartSender(){
   printf("waiting for receiver UART\n"); //remove this
   #endif
 
-  while(!serialDataAvail(serialPort));\
+  while(!serialDataAvail(serialPort));
   #if (UART_ECHO_DEBUG_PRINTS == TRUE)
   printf("echo done\n"); //remove this
   #endif

@@ -468,6 +468,8 @@ void *Service_5_UART(void *)
             uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
+            printf("Num run periferal: %u\n\r",numRunPeriferal); //remove change modify fix
+
             // pull the servo basis data
             printf("Sender: Waiting for Servo Data\n\r");
             while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
@@ -516,6 +518,8 @@ void *Service_5_UART(void *)
             uint8_t numServoDataToSend = (numRunPeriferal - 8 * keygenIndex)/8; // the number of bytes we have to send
             uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
+
+            printf("Num run periferal: %u\n\r",numRunPeriferal); //remove change modify fix
 
             // generate the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){

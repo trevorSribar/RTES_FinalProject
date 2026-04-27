@@ -275,8 +275,7 @@ void *Service_1_Servos(void *)
         #else
         if(firstCall==1){
             servo_set_angle(currentSevoAngle);
-            printf("New Send Servo Angle: 0\n");
-            printf("New Receive Servo Angle: 0\n");
+            printf("Send, Receive: 0 @0\n");
             currentSevoAngle++;
             currentSevoAngle=currentSevoAngle%4;
             firstCall = 0;
@@ -288,10 +287,9 @@ void *Service_1_Servos(void *)
                 ignoreFlag = 1;
             }
             else{
-                printf("New Send Servo Angle: %d\n",ignoreIterate/2*45);
+                printf("Send, Receive: %d @%d\n",ignoreIterate/2*45%180, currentSevoAngle*45);
                 if(ignoreIterate==8){
                     servo_set_angle(currentSevoAngle);
-                    printf("New Receive Servo Angle: %d\n", currentSevoAngle*45);
                     ignoreIterate = 0;
                     currentSevoAngle++;
                     currentSevoAngle=currentSevoAngle%4;

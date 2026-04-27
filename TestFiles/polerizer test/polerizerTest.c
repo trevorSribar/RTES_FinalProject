@@ -137,7 +137,7 @@ void main(void)
     rc=sched_setscheduler(getpid(), SCHED_FIFO, &main_param);
     if(rc < 0) perror("main_param");
 
-    #if (RPI_TYPE == TYPE_SENDER)k
+    #if (RPI_TYPE == TYPE_SENDER)
     // lining up the laser
     while(iterate_servo()!=1){
         laser_on();

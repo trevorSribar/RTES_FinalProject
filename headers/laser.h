@@ -4,7 +4,7 @@
 
 #include "generic.h"
 
-#define LASER_RECEIVER_INIDCATE_PIN 2
+#define LASER_RECEIVER_INIDCATE_PIN 3
 
 void init_laser_send(void);
 

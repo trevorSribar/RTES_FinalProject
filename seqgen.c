@@ -57,6 +57,8 @@
 #define DIVIDED_SERVO_MOVE_TIME (SERVO_MOVE_TIME/SERVO_MOVE_DIVISOR)
 #define TIMER_RELATIVE 0
 #define LOGGING TRUE
+#define PERIF_DEBUG_PRINTS FALSE
+#define SERVO_SYNC_DEBUG_PRINTS FALSE
 
 // added code for finding WCET
 #define FINDING_WCET FALSE
@@ -252,7 +254,9 @@ void *Service_1_Servos(void *)
     while(!abort_service[1])
     {
         sem_wait(&task_sems[1]);
+        #if (SERVO_SYNC_DEBUG_PRINTS == TRUE)
         printf("Servo counter \t\t%u\n\r", servoMoveCount); // remove change modify
+        #endif
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
@@ -311,13 +315,19 @@ void *Service_2_Periferal(void *)
         }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
+        #if (PERIF_DEBUG_PRINTS == TRUE)
         printf("Turned laser on, waiting for capture end\n\r");
+        #endif
         while(get_laserCaptureState()==0);
         laser_off();
+        #if (PERIF_DEBUG_PRINTS == TRUE)
         printf("Capture start found, laser off, waiting for capture reset\n\r");
+        #endif
         while(get_laserCaptureState()==1); // this ensures that the ADC releases faster, and this is good so that it will always capture the laser
         #else
+        #if (PERIF_DEBUG_PRINTS == TRUE)
         printf("waiting for laser on\n\r");
+        #endif
         while(get_laser_state_gpio()==0);
         readData = read_ads1115();
         if(readData > ADC_PHOTOSENSOR_READ_HIGH){
@@ -327,9 +337,13 @@ void *Service_2_Periferal(void *)
             sensedData[numRunPeriferal] = 0;
         }
         laser_capturedOn();
+        #if (PERIF_DEBUG_PRINTS == TRUE)
         printf("laser is on, capture is done, waiting for laser to be off\n\r");
+        #endif
         while(get_laser_state_gpio()==1);
+        #if (PERIF_DEBUG_PRINTS == TRUE)
         printf("turing capture off\n\r");
+        #endif
         laser_capturedOff();
         #endif
         numRunPeriferal++;

@@ -182,16 +182,16 @@ void main(void)
     #if (FINDING_WCET == TRUE)
     printf("Finding WCETs, scheduler %u times\n", NUM_TIMES_TEST);
     #endif
-    #if (RPI_TYPE == TYPE_SENDER)
-    echo_uartSender();
-    #else
-    echo_uartReceiver();
-    #endif
     #if (FINDING_WCET == TRUE)
     for(int i = 0; i<NUM_TIMES_TEST; i++){
     #else
     while(1){
     #endif
+        #if (RPI_TYPE == TYPE_SENDER)
+        echo_uartSender();
+        #else
+        echo_uartReceiver();
+        #endif
         #if(LOGGING == TRUE || FINDING_WCET == TRUE)
         clock_gettime(CLOCK_MONOTONIC,&start_time);
         #endif

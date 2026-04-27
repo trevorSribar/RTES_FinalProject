@@ -6,6 +6,7 @@
 
 
 #define TERIMINAL_ERROR -1
+#define TERMINAL_ADDED_SENTENCE 1
 
 
 // Optional setup hook for future terminal config.

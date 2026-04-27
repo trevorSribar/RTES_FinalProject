@@ -54,8 +54,9 @@ int terminal_read_char()
     {
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
+        return 1;
     }
-	return 1; // consumed a character, may be more data
+	return 0; // consumed a character, may be more data
 }
 
 void terminal_print_and_delete_DecryptedSentence(sentenceLinkedList_t **tail){

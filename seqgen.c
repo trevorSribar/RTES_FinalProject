@@ -58,7 +58,7 @@
 #define TIMER_RELATIVE 0
 #define LOGGING TRUE
 #define PERIF_DEBUG_PRINTS FALSE
-#define SERVO_SYNC_DEBUG_PRINTS TRUE
+#define SERVO_SYNC_DEBUG_PRINTS FALSE
 #define UART_SERVO_DEBUG_PRINTS FALSE
 
 // added code for finding WCET
@@ -613,7 +613,7 @@ void *Service_6_Terminal(void *){
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
-
+    printf("\n >> ");
     while(!abort_service[6])
     {
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
@@ -625,16 +625,13 @@ void *Service_6_Terminal(void *){
 
         // check RPI type
         #if (RPI_TYPE == TYPE_SENDER)
-        if(terminal_read_char()==TERIMINAL_ERROR){
+        int8_t terminalReadReturnValue = terminal_read_char(); 
+        if(terminalReadReturnValue==TERIMINAL_ERROR){
             perror("Terminal get char error\n\r");
         }
-        // int rc;
-        // while(rc > 0){
-        //     rc = terminal_read_char();
-        // }
-        // if(rc < 0){
-        //     perror("Terminal get char error\n\r");
-        // }
+        else if(terminalReadReturnValue == TERMINAL_ADDED_SENTENCE){
+            printf("\n >> ");
+        }
         #else
         if(sentenceLL_getNumSentencesToSend()>0){
             terminal_print_and_delete_DecryptedSentence(&sendHead);

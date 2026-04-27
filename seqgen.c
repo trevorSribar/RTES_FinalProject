@@ -468,6 +468,16 @@ void *Service_5_UART(void *)
             uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
+            // pull the servo basis data
+            printf("Waiting for Servo Data\n\r");
+            while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
+            printf("Recieved servo data\n\r"); // remove this
+
+            // save the servo basis data
+            for(uint16_t i = 0; i < servoBitLen; i++){
+                communicatedServoBasis[i + 8 * keygenIndex] = servoPositionBasisesToSend[i];
+            }
+
             // generate the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
                 servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
@@ -477,16 +487,7 @@ void *Service_5_UART(void *)
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
             printf("Sent servo data\n\r"); // remove this
 
-            // pull the servo basis data
-            while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
-            printf("Reveived servo data\n\r"); // remove this
-
-            // save the servo basis data
-            for(uint16_t i = 0; i < servoBitLen; i++){
-                communicatedServoBasis[i + 8 * keygenIndex] = servoPositionBasisesToSend[i];
-            }
             keygenIndex += numServoDataToSend;
-
         }
 
         // Sentence Data
@@ -516,16 +517,6 @@ void *Service_5_UART(void *)
             uint16_t servoBitLen = numServoDataToSend * 8; // it's just the number of bits we have to send instead of bytes
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
-            // pull the servo basis data
-            printf("Waiting for Servo Data\n\r");
-            while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
-            printf("Recieved servo data\n\r"); // remove this
-
-            // save the servo basis data
-            for(uint16_t i = 0; i < servoBitLen; i++){
-                communicatedServoBasis[i + 8 * keygenIndex] = servoPositionBasisesToSend[i];
-            }
-
             // generate the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
                 servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
@@ -535,7 +526,16 @@ void *Service_5_UART(void *)
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
             printf("Sent servo data\n\r"); // remove this
 
+            // pull the servo basis data
+            while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
+            printf("Reveived servo data\n\r"); // remove this
+
+            // save the servo basis data
+            for(uint16_t i = 0; i < servoBitLen; i++){
+                communicatedServoBasis[i + 8 * keygenIndex] = servoPositionBasisesToSend[i];
+            }
             keygenIndex += numServoDataToSend;
+
         }
 
         // Sentence Data

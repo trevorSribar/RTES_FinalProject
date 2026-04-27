@@ -55,7 +55,7 @@ int terminal_read_char()
     {
         sentenceLL_addSentence(head, input_buffer, sentence_length);
         sentence_length = 0;
-        return 1;
+        return 0;
     }
 	return 0; // consumed a character, may be more data
 }

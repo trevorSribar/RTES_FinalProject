@@ -23,10 +23,11 @@ void sentenceLL_init(sentenceLinkedList_t **addHead, sentenceLinkedList_t **encr
 // adds an element to the linked list and iterates the head to that element, adds to how many sentences must be encrypted
 uint8_t sentenceLL_addSentence(sentenceLinkedList_t **head, char *sentence, uint8_t length){
     #if (SENTENCELL_DEBUG_PRINTS == 1)
-    printf("\n\radd sentence: ");
+    printf("add sentence: ");
     for(uint8_t i = 0; i < length; i++){
         printf("%c",sentence[i]);
     }
+    printf("\n\r");
     #endif
     sentenceLinkedList_t *trueHead = *head;
     if(length>SENTENCELL_SENTENCE_SIZE){
@@ -55,10 +56,11 @@ uint8_t sentenceLL_addSentence(sentenceLinkedList_t **head, char *sentence, uint
 // removes the element from the linked list at the passed tail, removes how many sentences must be sent
 uint8_t sentenceLL_removeSentence(sentenceLinkedList_t **tail){
     #if (SENTENCELL_DEBUG_PRINTS == 1)
-    printf("\n\rremove sentence: ");
+    printf("remove sentence: ");
     for(uint8_t i = 0; i < (*tail)->numCharacters; i++){
         printf("%c",(*tail)->sentence[i]);
     }
+    printf("\n\r");
     #endif
     sentenceLinkedList_t *trueTail = *tail;
     if(numSentencesToSend==0){
@@ -86,10 +88,11 @@ uint8_t sentenceLL_removeSentence(sentenceLinkedList_t **tail){
 // DOESN'T ENCRYPT, increments the head for the encryption, subtracts from how many sentences has to been encrypted, adds to how many sentences must be sent
 uint8_t sentenceLL_encryptedSentence(sentenceLinkedList_t **encryption_head, char *nonce){
     #if (SENTENCELL_DEBUG_PRINTS == 1)
-    printf("\n\rencrypt sentence: ");
+    printf("encrypt sentence: ");
     for(uint8_t i = 0; i < (*encryption_head)->numCharacters; i++){
         printf("%c",(*encryption_head)->sentence[i]);
     }
+    printf("\n\r");
     #endif
     sentenceLinkedList_t *trueEncryptionHead = *encryption_head;
     if(numSentencesToEncrypt==0){

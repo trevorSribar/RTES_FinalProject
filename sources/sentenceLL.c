@@ -57,9 +57,6 @@ uint8_t sentenceLL_addSentence(sentenceLinkedList_t **head, char *sentence, uint
 uint8_t sentenceLL_removeSentence(sentenceLinkedList_t **tail){
     #if (SENTENCELL_DEBUG_PRINTS == 1)
     printf("remove sentence: ");
-    for(uint8_t i = 0; i < (*tail)->numCharacters; i++){
-        printf("%c",(*tail)->sentence[i]);
-    }
     printf("\n\r");
     #endif
     sentenceLinkedList_t *trueTail = *tail;

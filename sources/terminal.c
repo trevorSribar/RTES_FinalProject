@@ -33,7 +33,7 @@ int terminal_read_char()
     }
 
     int value = getchar();
-    printf("%c, %d\t",value, value);
+    printf("%c, %d\t",value, value); // remove this
 	if (value == EOF)
 	{
 		return -1;

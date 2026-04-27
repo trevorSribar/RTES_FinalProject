@@ -580,6 +580,7 @@ void *Service_6_Terminal(void *){
 
         // check RPI type
         #if (RPI_TYPE == TYPE_SENDER)
+        printf("\n\r >>");
         if(terminal_read_char()!=0){
             perror("Terminal get char error\n\r");
         }

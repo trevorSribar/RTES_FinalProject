@@ -50,9 +50,11 @@ uint8_t uart_receive(char *sentence, uint8_t *size)
 
   while (!serialDataAvail(serialPort)); // wait for more data to come
 
-  *size = serialGetchar(serialPort); // the next will be the size, size will be 0 to 255, where 0 = 256, all entries are valid
-
-  uint16_t sizeToLoopOver = *size; // our size parameter chan't hold 256, but this is the largest amount of data we must send, so we have to account for when size is 0 and iterate properly
+  // read size byte into uint16_t first so we can handle the 0=256 case without losing range
+  uint16_t sizeToLoopOver = (uint8_t)serialGetchar(serialPort); // 0 to 255, where 0 means 256
+  if(size != NULL){
+    *size = (uint8_t)sizeToLoopOver;
+  }
   if(sizeToLoopOver==0){
     sizeToLoopOver=256;
   }

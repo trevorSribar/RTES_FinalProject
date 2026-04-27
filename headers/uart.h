@@ -12,6 +12,7 @@
 #define UART_MIN_DATA_TYPE 1
 
 #define UART_DATA_TYPE_NONE 0 // this is for the case where we are receiving and see no pending bits to receive
+#define UART_NUM_CHECK_EMPTY_BE_SURE 5 // how many times the receiver polls for incoming sentences per UART service activation
 
 //send over UART a string of some length and dataType;
 void uart_send(char *string, int length, int dataType);

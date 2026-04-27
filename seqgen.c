@@ -374,11 +374,11 @@ void *Service_3_Encrypt(void *)
                 break;
             }
             #else // decrypting data
-            if(encryption_decryptData(sendHead->sentence, sendHead->numCharacters, sendHead->sentenceNonce)==ENCRYPTION_ERROR){
+            if(encryption_decryptData(encryptHead->sentence, encryptHead->numCharacters, encryptHead->sentenceNonce)==ENCRYPTION_ERROR){
                 printf("Decryption Error\n");
                 break;
             }
-            if(sentenceLL_encryptedSentence(&encryptHead,sendHead->sentenceNonce)==SENTENCELL_ERROR) {
+            if(sentenceLL_encryptedSentence(&encryptHead,encryptHead->sentenceNonce)==SENTENCELL_ERROR) {
                 perror("Sentence LL Encryption Error\n");
                 break;
             }
@@ -534,7 +534,7 @@ void *Service_5_UART(void *)
         for(uint8_t i = 0; i < UART_NUM_CHECK_EMPTY_BE_SURE; i++){
             char sentenceReveived[ENCRYPTION_NONCE_LENGTH+SENTENCELL_SENTENCE_SIZE];
             uint8_t sizeOfSentence;
-            uint8_t dataType = uart_receive(sentenceReveived,sizeOfSentence);
+            uint8_t dataType = uart_receive(sentenceReveived,&sizeOfSentence);
             if(dataType==0){
                 continue; // skip the reset of this
             }

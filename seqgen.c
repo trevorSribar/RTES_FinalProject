@@ -252,6 +252,7 @@ void *Service_1_Servos(void *)
     while(!abort_service[1])
     {
         sem_wait(&task_sems[1]);
+        printf("Servo counter %u\n\r", servoMoveCount); // remove change modify
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif

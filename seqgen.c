@@ -311,11 +311,9 @@ void *Service_2_Periferal(void *)
         }
         #if (RPI_TYPE == TYPE_SENDER)
         laser_on();
-        int result = clock_nanosleep(CLOCK_MONOTONIC, TIMER_RELATIVE, &(struct timespec){.tv_sec = 0, .tv_nsec = LASER_TIME_ON*NS_PER_USEC}, NULL);
-        if (result != 0) {
-            perror("Error in clock_nanosleep");
-        }
+        while(get_laserCaptureState()==0);
         laser_off();
+        while(get_laserCaptureState()==1); // this ensures that the ADC releases faster, and this is good so that it will always capture the laser
         #else
         while(get_laser_state_gpio()==0);
         readData = read_ads1115();
@@ -325,7 +323,9 @@ void *Service_2_Periferal(void *)
         else{
             sensedData[numRunPeriferal] = 0;
         }
+        laser_capturedOn();
         while(get_laser_state_gpio()==1);
+        laser_capturedOff();
         #endif
         numRunPeriferal++;
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)

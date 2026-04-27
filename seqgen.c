@@ -154,7 +154,9 @@ void main(void)
     }
     
     // thread creation
+    #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("pthread created: ");
+    #endif
 
     rc=pthread_create(&threads[1],&rt_sched_attr[1],Service_1_Servos, NULL);
     if(rc < 0)  { perror("\nError creating service 1");}

@@ -296,7 +296,6 @@ void *Service_2_Periferal(void *)
     while(!abort_service[2])
     {
         sem_wait(&task_sems[2]);
-        printf("Periferal counter numRunPeriferal \t%u\n\r", numRunPeriferal); // remove change modify
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
         #endif
@@ -325,9 +324,6 @@ void *Service_2_Periferal(void *)
         }
         else{
             sensedData[numRunPeriferal] = 0;
-        }
-        if(get_laser_state_gpio()==0){
-            printf("laser already low!\n");
         }
         while(get_laser_state_gpio()==1);
         #endif

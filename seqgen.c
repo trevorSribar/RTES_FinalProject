@@ -517,6 +517,7 @@ void *Service_5_UART(void *)
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
             // pull the servo basis data
+            printf("Waiting for Servo Data\n\r");
             while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
             printf("Recieved servo data\n\r"); // remove this
 

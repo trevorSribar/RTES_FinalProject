@@ -564,7 +564,8 @@ void *Service_5_UART(void *)
 
 // terminal service
 void *Service_6_Terminal(void *){
-    printf("Terminal service started\t");
+    printf("Terminal service started\n\r");
+    printf(" >> ");
     #if (FINDING_WCET == TRUE || LOGGING == TRUE)
     struct timespec releaseTime, completionTime;
     #endif
@@ -580,7 +581,6 @@ void *Service_6_Terminal(void *){
 
         // check RPI type
         #if (RPI_TYPE == TYPE_SENDER)
-        printf("\n\r >>");
         if(terminal_read_char()!=0){
             perror("Terminal get char error\n\r");
         }

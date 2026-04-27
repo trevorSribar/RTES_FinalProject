@@ -181,7 +181,7 @@ void main(void)
     #endif
     
     rc=pthread_create(&threads[5],&rt_sched_attr[5],Service_5_UART, NULL);
-    if(rc < 0)  { perror("\nError creating service 5");}\
+    if(rc < 0)  { perror("\nError creating service 5");}
     #if (SERVICE_DEBUGPRINTS == TRUE)
     else        {printf("S5, ");}
     #endif

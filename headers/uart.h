@@ -10,6 +10,7 @@
 #define UART_DATA_TYPE_SERVO 2
 #define UART_MAX_DATA_TYPE 2
 #define UART_MIN_DATA_TYPE 1
+#define UART_ECHO_DEBUG_PRINTS FALSE
 
 #define UART_DATA_TYPE_NONE 0 // this is for the case where we are receiving and see no pending bits to receive
 #define UART_NUM_CHECK_EMPTY_BE_SURE 5 // how many times the receiver polls for incoming sentences per UART service activation

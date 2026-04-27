@@ -71,9 +71,14 @@ uint8_t uart_receive(char *sentence, uint8_t *size)
 void echo_uartSender(){
   // send the wait for the echo
   serialPutchar(serialPort, 0xFF);
+  #if (UART_ECHO_DEBUG_PRINTS == TRUE)
   printf("waiting for receiver UART\n"); //remove this
+  #endif
+
   while(!serialDataAvail(serialPort));\
+  #if (UART_ECHO_DEBUG_PRINTS == TRUE)
   printf("echo done\n"); //remove this
+  #endif
 
   // pull the FF
   serialGetchar(serialPort);
@@ -82,10 +87,14 @@ void echo_uartSender(){
 // must be called before running the sender, otherwise it will not be looking for the sender echo
 void echo_uartReceiver(){
   // wait then send the echo
+  #if (UART_ECHO_DEBUG_PRINTS == TRUE)
   printf("waiting for sender UART\n"); //remove this
+  #endif
   while(!serialDataAvail(serialPort));
   serialPutchar(serialPort, 0xFF);
+  #if (UART_ECHO_DEBUG_PRINTS == TRUE)
   printf("echo done\n"); //remove this 
+  #endif
 
   // pull the FF
   serialGetchar(serialPort);

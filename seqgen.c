@@ -283,14 +283,14 @@ void *Service_1_Servos(void *)
         #if (LOGGING == TRUE)
         syslog(LOG_INFO, "S1 start:\tsec=%lu\tnsec=%lu\n", releaseTime.tv_sec, releaseTime.tv_nsec);
         #endif
-        if(servoMoveCount>ENCRYPTION_KEY_LENGTH*8){ // waiting for new key criteria change modify fix
+        if(servoMoveCount>=ENCRYPTION_KEY_LENGTH*8){ // waiting for new key criteria change modify fix
             if(generateNewKey!=TRUE){
                 continue;
             }
             servoMoveCount = 0;
         }
         servoPosition[servoMoveCount] = servo_set_angle_random();
-        printf("servo pos : %d/n",servoPosition[servoMoveCount]);
+        printf("servo pos : %d\n",servoPosition[servoMoveCount]); // remove this
         servoMoveCount++;
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);

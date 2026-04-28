@@ -83,7 +83,7 @@ void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, ui
             if(sentValue==KEYGEN_ONE_B1&&measuredBasis==KEYGEN_BASIS1)      {key[i]|=1<<j;}
             else if(sentValue==KEYGEN_ONE_B2&&measuredBasis==KEYGEN_BASIS2) {key[i]|=1<<j;}
             #if (KEYGEN_DEBUG_PRINTS == TRUE)
-            printf("Sent: %d, Meas: %d\n",sentValue,measuredBasis);
+            printf("Sent: %d, Meas: %d\tBIT %d\n",sentValue,measuredBasis,(key[i]>>j)&1);
             #endif
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)
@@ -124,7 +124,7 @@ void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint
             // if it was sent in basis 2, we were looking at one in that base, and saw a value, then 1 was sent
             else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ONE_B2 && sensedValue!=0) {key[i]|=1<<j;}
             #if (KEYGEN_DEBUG_PRINTS == TRUE)
-            printf("Saw: %d, Meas: %d, Basis: %d\n",sensedValue,measuredValue,receivedBasis);
+            printf("Saw: %d, Meas: %d, Basis: %d\tBIT %d\n",sensedValue,measuredValue,receivedBasis,(key[i]>>j)&1);
             #endif
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)

@@ -353,7 +353,9 @@ void *Service_2_Periferal(void *)
         while(get_laser_state_gpio()==0);
         read_ads1115();
         readData = read_ads1115();
+        #if (KEYGEN_DEBUG_PRINTS == TRUE)
         printf("Read data: %d\n",readData);
+        #endif
         if(readData > ADC_BASIS1_PHOTOSENSOR_READ_HIGH || (servoPosition[numRunPeriferal]%2==1&&(readData > ADC_BASIS2_PHOTOSENSOR_READ_HIGH))){
             sensedData[numRunPeriferal] = 1;
         }

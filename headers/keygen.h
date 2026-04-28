@@ -13,7 +13,7 @@
 #define KEYGEN_BASIS1 0
 #define KEYGEN_BASIS2 1
 
-#define KEYGEN_DEBUG_PRINTS TRUE
+#define KEYGEN_DEBUG_PRINTS FALSE
 
 //
 // functions

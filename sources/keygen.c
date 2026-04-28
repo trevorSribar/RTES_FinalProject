@@ -84,7 +84,7 @@ void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, ui
             else if(sentValue==KEYGEN_ONE_B2&&measuredBasis==KEYGEN_BASIS2) {key[i]|=1<<j;}
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)
-        printf("%X",key[i]);
+        printf("%X\t",key[i]);
         #endif
     }
     #if (KEYGEN_DEBUG_PRINTS == TRUE)
@@ -122,9 +122,12 @@ void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint
             else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ONE_B2 && sensedValue!=0) {key[i]|=1<<j;}
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)
-        printf("%X",key[i]);
+        printf("%X\t",key[i]);
         #endif
     }
+    #if (KEYGEN_DEBUG_PRINTS == TRUE)
+    printf("\n");
+    #endif
     // if we are done doing all addresses, update the key
     if(endAddress+1==ENCRYPTION_KEY_LENGTH){
         encryption_setKey(key);

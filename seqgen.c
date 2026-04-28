@@ -351,6 +351,7 @@ void *Service_2_Periferal(void *)
         printf("waiting for laser on\n\r");
         #endif
         while(get_laser_state_gpio()==0);
+        read_ads1115();
         readData = read_ads1115();
         if(readData > ADC_PHOTOSENSOR_READ_HIGH){
             sensedData[numRunPeriferal] = 1;

@@ -290,6 +290,7 @@ void *Service_1_Servos(void *)
             servoMoveCount = 0;
         }
         servoPosition[servoMoveCount] = servo_set_angle_random();
+        printf("servo pos : %d/n",servoPosition[servoMoveCount]);
         servoMoveCount++;
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &completionTime);

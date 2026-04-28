@@ -275,7 +275,7 @@ void *Service_1_Servos(void *)
     {
         sem_wait(&task_sems[1]);
         #if (SERVO_SYNC_DEBUG_PRINTS == TRUE)
-        printf("Servo counter \t\t%u\n\r", servoMoveCount); // remove change modify
+        printf("Servo counter \t\t%u\n\r", servoMoveCount);
         #endif
         #if (FINDING_WCET == TRUE || LOGGING == TRUE)
         clock_gettime(CLOCK_MONOTONIC, &releaseTime);
@@ -353,9 +353,6 @@ void *Service_2_Periferal(void *)
         while(get_laser_state_gpio()==0);
         read_ads1115();
         readData = read_ads1115();
-        if(readData < ADC_PHOTOSENSOR_READ_HIGH){
-            readData = read_ads1115();
-        }
         if(readData > ADC_PHOTOSENSOR_READ_HIGH){
             sensedData[numRunPeriferal] = 1;
         }
@@ -521,7 +518,7 @@ void *Service_5_UART(void *)
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
             #if (UART_SERVO_DEBUG_PRINTS == TRUE)
-            printf("Num run periferal: %u\n\r",numRunPeriferal); //remove change modify fix
+            printf("Num run periferal: %u\n\r",numRunPeriferal);
 
             // pull the servo basis data
             printf("Sender: Waiting for Servo Data\n\r");
@@ -544,7 +541,7 @@ void *Service_5_UART(void *)
             // send the current servo basis data
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
             #if (UART_SERVO_DEBUG_PRINTS == TRUE)
-            printf("Sender: Sent servo data\n\r"); // remove this
+            printf("Sender: Sent servo data\n\r");
             #endif
 
             keygenIndex += numServoDataToSend;
@@ -578,7 +575,7 @@ void *Service_5_UART(void *)
             char servoPositionBasisesToSend[ENCRYPTION_KEY_LENGTH*8]; // array for sending data
 
             #if (UART_SERVO_DEBUG_PRINTS == TRUE)
-            printf("Num run periferal: %u\n\r",numRunPeriferal); //remove change modify fix
+            printf("Num run periferal: %u\n\r",numRunPeriferal);
             #endif
 
             // generate the servo basis data
@@ -589,13 +586,13 @@ void *Service_5_UART(void *)
             // send the current servo basis data
             uart_send(servoPositionBasisesToSend, (uint8_t) servoBitLen, UART_DATA_TYPE_SERVO);
             #if (UART_SERVO_DEBUG_PRINTS == TRUE)
-            printf("Receiver: Sent servo data\n\r"); // remove this
+            printf("Receiver: Sent servo data\n\r");
             #endif
 
             // pull the servo basis data
             while(uart_receive(servoPositionBasisesToSend, NULL) != UART_DATA_TYPE_SERVO); // we know exactily how much infromation SHOULD be sent, and we wait till we get the servo info
             #if (UART_SERVO_DEBUG_PRINTS == TRUE)
-            printf("Receiver: Reveived servo data\n\r"); // remove this
+            printf("Receiver: Reveived servo data\n\r");
             #endif
 
             // save the servo basis data

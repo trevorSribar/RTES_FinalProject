@@ -77,8 +77,8 @@ void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, ui
 
         // iterate over all the bytes of data sent
         for(uint8_t j = 0; j < 8; j++){
-            uint8_t sentValue = sentServoData[i*8+j];
-            uint8_t measuredBasis = measuredServoBasis[i*8+j];
+            uint8_t sentValue = sentServoData[i*8+j+startAddress];
+            uint8_t measuredBasis = measuredServoBasis[i*8+j+startAddress];
             // if we sent a 1 and measured in the correct basis, the key at that values should be 1, otherwise it is 0
             if(sentValue==KEYGEN_ONE_B1&&measuredBasis==KEYGEN_BASIS1)      {key[i+startAddress]|=1<<j;}
             else if(sentValue==KEYGEN_ONE_B2&&measuredBasis==KEYGEN_BASIS2) {key[i+startAddress]|=1<<j;}
@@ -112,9 +112,9 @@ void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint
     for(uint8_t i = startAddress; i <= endAddress; i++){
         // iterate over all the bytes of data sent
         for(uint8_t j = 0; j < 8; j++){
-            uint8_t sensedValue = dataSensed[i*8+j];
-            uint8_t measuredValue = measuredServoData[i*8+j];
-            uint8_t receivedBasis = reveivedServoData[i*8+j];
+            uint8_t sensedValue = dataSensed[i*8+j+startAddress];
+            uint8_t measuredValue = measuredServoData[i*8+j+startAddress];
+            uint8_t receivedBasis = reveivedServoData[i*8+j+startAddress];
             // if it was sent in basis 1, we were looking at zero in that base, and we saw no value, then 1 must have been sent
             if(receivedBasis==KEYGEN_BASIS1 && measuredValue==KEYGEN_ZERO_B1 && sensedValue==0)     {key[i+startAddress]|=1<<j;}
             // if it was sent in basis 1, we were looking at one in that base, and saw a value, then 1 was sent

@@ -87,7 +87,7 @@ void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, ui
             #endif
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)
-        printf("%X\n",key[i]);
+        printf("%X\n",key[i+startAddress]);
         #endif
     }
     #if (KEYGEN_DEBUG_PRINTS == TRUE)
@@ -130,7 +130,7 @@ void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint
             #endif
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)
-        printf("%X\n",key[i]);
+        printf("%X\n",key[i+startAddress]);
         #endif
     }
     #if (KEYGEN_DEBUG_PRINTS == TRUE)

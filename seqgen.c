@@ -446,7 +446,7 @@ void *Service_3_Encrypt(void *)
 // keygen service
 void *Service_4_Keygen(void *) 
 {
-    uint8_t lastComputedKeygenIndex;
+    uint8_t lastComputedKeygenIndex = 0;
     #if (SERVICE_DEBUGPRINTS == TRUE)
     printf("Keygen service started\t");
     #endif

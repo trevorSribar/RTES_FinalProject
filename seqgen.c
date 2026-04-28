@@ -354,7 +354,7 @@ void *Service_2_Periferal(void *)
         read_ads1115();
         readData = read_ads1115();
         printf("Read data: %d\n",readData);
-        if(readData > ADC_PHOTOSENSOR_READ_HIGH){
+        if(readData > ADC_BASIS1_PHOTOSENSOR_READ_HIGH || (servoPosition[numRunPeriferal]%2==1&&(readData > ADC_BASIS2_PHOTOSENSOR_READ_HIGH))){
             sensedData[numRunPeriferal] = 1;
         }
         else{

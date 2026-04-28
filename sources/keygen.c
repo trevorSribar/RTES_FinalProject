@@ -77,17 +77,17 @@ void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, ui
 
         // iterate over all the bytes of data sent
         for(uint8_t j = 0; j < 8; j++){
-            uint8_t sentValue = sentServoData[i*8+j+startAddress];
-            uint8_t measuredBasis = measuredServoBasis[i*8+j+startAddress];
+            uint8_t sentValue = sentServoData[i*8+j];
+            uint8_t measuredBasis = measuredServoBasis[i*8+j];
             // if we sent a 1 and measured in the correct basis, the key at that values should be 1, otherwise it is 0
-            if(sentValue==KEYGEN_ONE_B1&&measuredBasis==KEYGEN_BASIS1)      {key[i+startAddress]|=1<<j;}
-            else if(sentValue==KEYGEN_ONE_B2&&measuredBasis==KEYGEN_BASIS2) {key[i+startAddress]|=1<<j;}
+            if(sentValue==KEYGEN_ONE_B1&&measuredBasis==KEYGEN_BASIS1)      {key[i]|=1<<j;}
+            else if(sentValue==KEYGEN_ONE_B2&&measuredBasis==KEYGEN_BASIS2) {key[i]|=1<<j;}
             #if (KEYGEN_DEBUG_PRINTS == TRUE)
-            printf("Sent: %d, Meas: %d\tBIT %d\n",sentValue,measuredBasis,(key[i+startAddress]>>j)&1);
+            printf("Sent: %d, Meas: %d\tBIT %d\n",sentValue,measuredBasis,(key[i]>>j)&1);
             #endif
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)
-        printf("%X\n",key[i+startAddress]);
+        printf("%X\n",key[i]);
         #endif
     }
     #if (KEYGEN_DEBUG_PRINTS == TRUE)
@@ -112,25 +112,25 @@ void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint
     for(uint8_t i = startAddress; i < endAddress; i++){
         // iterate over all the bytes of data sent
         for(uint8_t j = 0; j < 8; j++){
-            uint8_t sensedValue = dataSensed[i*8+j+startAddress];
-            uint8_t measuredValue = measuredServoData[i*8+j+startAddress];
-            uint8_t receivedBasis = reveivedServoData[i*8+j+startAddress];
+            uint8_t sensedValue = dataSensed[i*8+j];
+            uint8_t measuredValue = measuredServoData[i*8+j];
+            uint8_t receivedBasis = reveivedServoData[i*8+j];
             // if it was sent in basis 1, we were looking at zero in that base, and we saw no value, then 1 must have been sent
-            if(receivedBasis==KEYGEN_BASIS1 && measuredValue==KEYGEN_ZERO_B1 && sensedValue==0)     {key[i+startAddress]|=1<<j;}
+            if(receivedBasis==KEYGEN_BASIS1 && measuredValue==KEYGEN_ZERO_B1 && sensedValue==0)     {key[i]|=1<<j;}
             // if it was sent in basis 1, we were looking at one in that base, and saw a value, then 1 was sent
-            else if(receivedBasis==KEYGEN_BASIS1 && measuredValue==KEYGEN_ONE_B1 && sensedValue!=0) {key[i+startAddress]|=1<<j;}
+            else if(receivedBasis==KEYGEN_BASIS1 && measuredValue==KEYGEN_ONE_B1 && sensedValue!=0) {key[i]|=1<<j;}
 
             // so the servos are facing eachother, not perfectly mirrored, effectivly making them 90 off if they choose the same thing, so we swap the logic that would normally be here
             // if it was sent in basis 2, we were looking at zero in that base, and we saw no value, then 1 must have been sent
-            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ZERO_B2 && sensedValue!=0){key[i+startAddress]|=1<<j;}
+            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ZERO_B2 && sensedValue!=0){key[i]|=1<<j;}
             // if it was sent in basis 2, we were looking at one in that base, and saw a value, then 1 was sent
-            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ONE_B2 && sensedValue==0) {key[i+startAddress]|=1<<j;}
+            else if(receivedBasis==KEYGEN_BASIS2 && measuredValue==KEYGEN_ONE_B2 && sensedValue==0) {key[i]|=1<<j;}
             #if (KEYGEN_DEBUG_PRINTS == TRUE)
-            printf("Saw: %d, Meas: %d, Basis: %d\tBIT %d\n",sensedValue,measuredValue,receivedBasis,(key[i+startAddress]>>j)&1);
+            printf("Saw: %d, Meas: %d, Basis: %d\tBIT %d\n",sensedValue,measuredValue,receivedBasis,(key[i]>>j)&1);
             #endif
         }
         #if (KEYGEN_DEBUG_PRINTS == TRUE)
-        printf("%X\n",key[i+startAddress]);
+        printf("%X\n",key[i]);
         #endif
     }
     #if (KEYGEN_DEBUG_PRINTS == TRUE)

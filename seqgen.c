@@ -534,7 +534,7 @@ void *Service_5_UART(void *)
 
             // generate the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
-                servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]/2;
+                servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
             }
 
             // send the current servo basis data
@@ -579,7 +579,7 @@ void *Service_5_UART(void *)
 
             // generate the servo basis data
             for(uint16_t i = 0; i < servoBitLen; i++){
-                servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]/2;
+                servoPositionBasisesToSend[i] = servoPosition[i + 8 * keygenIndex]%2;
             }
 
             // send the current servo basis data

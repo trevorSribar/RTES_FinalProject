@@ -73,7 +73,7 @@ void keygen_senderByByte(uint8_t *sentServoData, uint8_t *measuredServoBasis, ui
     #if (KEYGEN_DEBUG_PRINTS == TRUE)
     printf("Keygen for %d to %d:\n", startAddress, endAddress);
     #endif
-    for(uint8_t i = startAddress; i <= endAddress; i++){
+    for(uint8_t i = startAddress; i < endAddress; i++){
 
         // iterate over all the bytes of data sent
         for(uint8_t j = 0; j < 8; j++){
@@ -109,7 +109,7 @@ void keygen_receiverByByte(uint8_t *dataSensed, uint8_t *measuredServoData, uint
     printf("Keygen for %d to %d:\n", startAddress, endAddress);
     #endif
     // iterate over all of the key
-    for(uint8_t i = startAddress; i <= endAddress; i++){
+    for(uint8_t i = startAddress; i < endAddress; i++){
         // iterate over all the bytes of data sent
         for(uint8_t j = 0; j < 8; j++){
             uint8_t sensedValue = dataSensed[i*8+j+startAddress];

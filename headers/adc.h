@@ -7,7 +7,7 @@
 
 #define DEVICE_ID 0x48
 #define PIN_BASE 200
-#define ADC_PHOTOSENSOR_READ_HIGH 1300 //this is the lowest I can go w/ my current values
+#define ADC_PHOTOSENSOR_READ_HIGH 1700 // 1300 is the lowest I can go w/ my current values
 
 //Initialize the ADS1115 device 
 void init_ads1115(void);

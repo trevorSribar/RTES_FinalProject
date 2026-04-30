@@ -44,9 +44,9 @@
 #define NUM_THREADS (6+1)
 #define SERVO_PRIO              (5)
 #define EXTERNAL_PRIO           (6)
-#define ENCRYPT_DECRYPT_PRIO    (4)
-#define KEYGEN_PRIO             (3)
-#define UART_PRIO               (2)
+#define ENCRYPT_DECRYPT_PRIO    (2)
+#define KEYGEN_PRIO             (4)
+#define UART_PRIO               (3)
 #define TERMINAL_PRIO           (1)
 
 #define NS_PER_USEC             1000
